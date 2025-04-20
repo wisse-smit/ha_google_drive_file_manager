@@ -1,0 +1,15 @@
+{
+    "domain": "google_drive_file_manager",
+    "name": "Google Drive file manager",
+    "version": "1.0.0",
+    "documentation": "https://www.home-assistant.io/integrations/google_drive_test_integration",
+    "requirements": [
+      "google-auth==2.16.0",
+      "google-auth-oauthlib==0.5.3",
+      "google-api-python-client==2.86.0"
+    ],
+    "dependencies": [],
+    "codeowners": ["@wisse_smit"],
+    "config_flow": true
+  }
+  
