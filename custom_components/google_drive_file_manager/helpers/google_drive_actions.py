@@ -79,7 +79,7 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
 
-def extract_folder_id_from_path(hass, credentials, folder_remote_path):
+def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
     """Based on a folder path, extract the folder ID from Google Drive.
     It will check the availability of a folder ID in the Home Assistant integration data and return that.
     If not available, it will search for the folder in Google Drive and return the ID.
@@ -87,8 +87,8 @@ def extract_folder_id_from_path(hass, credentials, folder_remote_path):
     Any new folder IDs will be stored in the Home Assistant integration data for future use.
 
     Args:
-        credentials (_type_): _description_
-        folder_remote_path (_type_): _description_
+        credentials (_type_): Credentials object to access Google Drive.
+        folder_remote_path (_type_): A string representing the folder path in Google Drive. Formatted with '/' as a separator.
     """
 
     drive = build("drive", "v3", credentials=credentials)
@@ -140,15 +140,20 @@ def extract_folder_id_from_path(hass, credentials, folder_remote_path):
     # return the ID for the full path
     return folder_cache[folder_remote_path]
 
-def upload_large_media_file(hass, credentials, local_filepath: str, mimetype: str, remote_filename: str = None, remote_folder_path: str = None) -> dict:
+def upload_media_file(hass, 
+                    credentials, 
+                    local_file_path: str, 
+                    mime_type: str, 
+                    remote_file_name: str = None, 
+                    remote_folder_path: str = None) -> dict:
     """Uploads a large media file to Google Drive.
 
     Args:
         hass: The Home Assistant instance used to run the asynchronous task and store the folder ID cache.
         credentials: The credentials object to access Google Drive.
-        local_filepath (str): The local path to the media file.
-        mimetype (str): The MIME type of the file.
-        filename (str): (optional) The desired name for the file in Google Drive.
+        local_file_path (str): The local path to the media file.
+        mime_type (str): The MIME type of the file.
+        remote_filename (str): (optional) The desired name for the file in Google Drive.
         remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
 
 
@@ -158,13 +163,13 @@ def upload_large_media_file(hass, credentials, local_filepath: str, mimetype: st
 
     drive_service = build("drive", "v3", credentials=credentials)
 
-    media = MediaFileUpload(local_filepath, mimetype=mimetype, resumable=True)
+    media = MediaFileUpload(local_file_path, mimetype=mime_type, resumable=True)
 
     file_metadata = {}
     
     # Set the remote (Drive) filename is provided
-    if remote_filename:
-        file_metadata["name"] = remote_filename
+    if remote_file_name:
+        file_metadata["name"] = remote_file_name
 
     # Extract the remote folder based on the folder path
     if remote_folder_path:
@@ -190,7 +195,12 @@ def upload_large_media_file(hass, credentials, local_filepath: str, mimetype: st
         _LOGGER.error("Error uploading media file to Google Drive: %s", e, exc_info=True)
         raise
 
-async def async_upload_large_media_file(hass, credentials, filepath: str, filename: str, mimetype: str) -> None:
+async def async_upload_media_file(hass, 
+                                  credentials, 
+                                  local_file_path: str, 
+                                  mime_type: str, 
+                                  remote_file_name: str, 
+                                  remote_folder_path: str) -> None:
     """
     Async function to upload a large media file to Google Drive and log results.
     This function offloads the blocking upload operation to an executor and 
@@ -199,9 +209,11 @@ async def async_upload_large_media_file(hass, credentials, filepath: str, filena
     Args:
         hass: The Home Assistant instance used to run the asynchronous task.
         credentials: The credentials object to access Google Drive.
-        filepath (str): The local path to the media file.
-        filename (str): The desired name for the file in Google Drive.
-        mimetype (str): The MIME type of the file.
+        local_file_path (str): The local path to the media file.
+        mime_type (str): The MIME type of the file.
+        remote_file_name (str): The desired name for the file in Google Drive.
+        remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
+
     Returns:
         None: This function does not return a value. It logs the result of the 
         upload operation.
@@ -210,8 +222,7 @@ async def async_upload_large_media_file(hass, credentials, filepath: str, filena
     try:
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
-            upload_large_media_file, hass, credentials, filepath, filename, mimetype
-        )
+            upload_media_file, hass, credentials, local_file_path, mime_type, remote_file_name, remote_folder_path)
 
         file_id = response.get("id")
         if file_id:
@@ -279,7 +290,7 @@ async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: i
     """
     try:
         deleted = await hass.async_add_executor_job(
-            cleanup_drive_files, credentials, pattern, days_ago
+            cleanup_drive_files, credentials, pattern, days_ago, test_run
         )
         if deleted:
             names = ", ".join(deleted)

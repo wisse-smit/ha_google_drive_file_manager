@@ -15,9 +15,10 @@ from .helpers.authentication_services import async_get_google_drive_credentials
 from .helpers.google_drive_actions import (
     async_get_list_video_mp4_files,
     async_get_list_files_by_pattern,
-    async_upload_large_media_file,
+    async_upload_media_file,
     async_cleanup_drive_files,
     )
+from .helpers.services_schemas import SCHEMAS
 
 from .const import DOMAIN, SCOPES, OAUTH2_TOKEN
 
@@ -47,18 +48,18 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
         # Fetch & log MP4 list
         await async_get_list_video_mp4_files(hass, credentials)
 
-    async def upload_large_media_file(call: ServiceCall) -> None:
+    async def upload_media_file(call: ServiceCall) -> None:
         """Service to upload a large media file to Google Drive."""
         # Get valid credentials (auto‑refresh if needed)
         credentials = await async_get_google_drive_credentials(hass, entry)
         # Upload the file
-        await async_upload_large_media_file(
+        await async_upload_media_file(
             hass,
             credentials,
             call.data["local_file_path"],
-            call.data["remote_file_path"],
-            call.data["file_name"],
             call.data["mime_type"],
+            call.data["remote_file_name"],
+            call.data["remote_folder_path"],
         )
 
     async def cleanup_drive_files(call: ServiceCall) -> None:
@@ -69,8 +70,9 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
         await async_cleanup_drive_files(
             hass,
             credentials,
-            call.data["folder_id"],
-            call.data["file_name"],
+            call.data["pattern"],
+            call.data["days_ago"],
+            call.data["test_run"]
         )
 
     async def list_files_by_pattern(call: ServiceCall) -> None:
@@ -85,10 +87,24 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             call.data["fields"],
         )
 
-    hass.services.async_register(DOMAIN, "list_mp4_files", list_mp4_files)
-    hass.services.async_register(DOMAIN, "upload_large_media_file", upload_large_media_file)
-    hass.services.async_register(DOMAIN, "cleanup_drive_files", cleanup_drive_files)
-    hass.services.async_register(DOMAIN, "list_files_by_pattern", list_files_by_pattern)
+    # Create a list of all the services we want to register
+    services = {
+        "list_mp4_files": list_mp4_files,
+        "upload_media_file": upload_media_file,
+        "cleanup_drive_files": cleanup_drive_files,
+        "list_files_by_pattern": list_files_by_pattern,
+    }
+
+    # Register each service with the corresponding function
+    for service_name, service_func in services.items():
+        # Register each service with the corresponding function
+        hass.services.async_register(
+            DOMAIN,
+            service_name,
+            service_func,
+            schema=SCHEMAS.get(service_name),
+        )
+    
     return True
 
 
