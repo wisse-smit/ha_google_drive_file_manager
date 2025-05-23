@@ -4,8 +4,11 @@ from googleapiclient.http import MediaFileUpload
 
 from datetime import datetime, timezone, timedelta
 import logging
+from ..const import DOMAIN
+
 
 _LOGGER = logging.getLogger(__name__)
+
 
 def get_list_video_mp4_files(credentials) -> dict:
     """Standard blocking function to get mp4 files from Google Drive.
@@ -76,14 +79,78 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
 
-def upload_large_media_file(credentials, filepath: str, filename: str, mimetype: str) -> dict:
+def extract_folder_id_from_path(hass, credentials, folder_remote_path):
+    """Based on a folder path, extract the folder ID from Google Drive.
+    It will check the availability of a folder ID in the Home Assistant integration data and return that.
+    If not available, it will search for the folder in Google Drive and return the ID.
+    If the folder is not found, it will create the folder with the given name and do that until the full path is created.
+    Any new folder IDs will be stored in the Home Assistant integration data for future use.
+
+    Args:
+        credentials (_type_): _description_
+        folder_remote_path (_type_): _description_
+    """
+
+    drive = build("drive", "v3", credentials=credentials)
+
+    # initialize cache
+    cache = hass.data.setdefault(DOMAIN, {})
+    folder_cache = cache.setdefault("folder_ids", {})
+
+    # if we've already resolved this full path, return it
+    if folder_remote_path in folder_cache:
+        return folder_cache[folder_remote_path]
+
+    parent_id = "root"
+    segments = folder_remote_path.strip("/").split("/")
+
+    for i, segment in enumerate(segments, start=1):
+        subpath = "/".join(segments[:i])
+        if subpath in folder_cache:
+            parent_id = folder_cache[subpath]
+            continue
+
+        # look for an existing folder with this name under parent_id
+        q = (
+            "mimeType = 'application/vnd.google-apps.folder' and "
+            f"name = '{segment.replace('\"', '\\\"')}' and "
+            f"'{parent_id}' in parents and trashed = false"
+        )
+        resp = drive.files().list(q=q, fields="files(id,name)", pageSize=1).execute()
+        files = resp.get("files", [])
+
+        if files:
+            folder_id = files[0]["id"]
+            _LOGGER.debug("Found folder %s → %s", subpath, folder_id)
+        else:
+            # create the folder
+            meta = {
+                "name": segment,
+                "mimeType": "application/vnd.google-apps.folder",
+                "parents": [parent_id],
+            }
+            created = drive.files().create(body=meta, fields="id").execute()
+            folder_id = created["id"]
+            _LOGGER.info("Created folder %s → %s", subpath, folder_id)
+
+        # cache and step into it
+        folder_cache[subpath] = folder_id
+        parent_id = folder_id
+
+    # return the ID for the full path
+    return folder_cache[folder_remote_path]
+
+def upload_large_media_file(hass, credentials, local_filepath: str, mimetype: str, remote_filename: str = None, remote_folder_path: str = None) -> dict:
     """Uploads a large media file to Google Drive.
 
     Args:
+        hass: The Home Assistant instance used to run the asynchronous task and store the folder ID cache.
         credentials: The credentials object to access Google Drive.
-        filepath (str): The local path to the media file.
-        filename (str): The desired name for the file in Google Drive.
+        local_filepath (str): The local path to the media file.
         mimetype (str): The MIME type of the file.
+        filename (str): (optional) The desired name for the file in Google Drive.
+        remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
+
 
     Returns:
         dict: The response from the Google Drive API after the upload.
@@ -91,8 +158,20 @@ def upload_large_media_file(credentials, filepath: str, filename: str, mimetype:
 
     drive_service = build("drive", "v3", credentials=credentials)
 
-    media = MediaFileUpload(filepath, mimetype=mimetype, resumable=True)
-    file_metadata = {"name": filename}
+    media = MediaFileUpload(local_filepath, mimetype=mimetype, resumable=True)
+
+    file_metadata = {}
+    
+    # Set the remote (Drive) filename is provided
+    if remote_filename:
+        file_metadata["name"] = remote_filename
+
+    # Extract the remote folder based on the folder path
+    if remote_folder_path:
+        folder_id = extract_folder_id_from_path(hass, credentials, remote_folder_path)
+
+        # Set the folder ID in the metadata so the file is uploaded to the correct folder
+        file_metadata["parents"] = [folder_id]
 
     try:
         request = drive_service.files().create(
@@ -131,7 +210,7 @@ async def async_upload_large_media_file(hass, credentials, filepath: str, filena
     try:
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
-            upload_large_media_file, credentials, filepath, filename, mimetype
+            upload_large_media_file, hass, credentials, filepath, filename, mimetype
         )
 
         file_id = response.get("id")

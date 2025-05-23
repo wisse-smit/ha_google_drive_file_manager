@@ -55,9 +55,10 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
         await async_upload_large_media_file(
             hass,
             credentials,
-            call.data["file_path"],
+            call.data["local_file_path"],
+            call.data["remote_file_path"],
+            call.data["file_name"],
             call.data["mime_type"],
-            call.data["folder_id"],
         )
 
     async def cleanup_drive_files(call: ServiceCall) -> None:
