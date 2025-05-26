@@ -18,7 +18,7 @@ from .helpers.google_drive_actions import (
     async_upload_media_file,
     async_cleanup_drive_files,
     )
-from .helpers.services_schemas import SCHEMAS
+from .helpers.service_schemas import SCHEMAS
 
 from .const import DOMAIN, SCOPES, OAUTH2_TOKEN
 
@@ -72,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             credentials,
             call.data["pattern"],
             call.data["days_ago"],
-            call.data["test_run"]
+            call.data["preview"]
         )
 
     async def list_files_by_pattern(call: ServiceCall) -> None:

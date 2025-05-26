@@ -13,7 +13,7 @@ SCHEMAS = {
     "cleanup_drive_files": vol.Schema({
         vol.Required("pattern"): cv.string,
         vol.Required("days_ago"): cv.positive_int,
-        vol.Optional("test_run", default=False): cv.boolean,
+        vol.Optional("preview", default=False): cv.boolean,
     }),
     "list_files_by_pattern": vol.Schema({
         vol.Required("query"): cv.string,

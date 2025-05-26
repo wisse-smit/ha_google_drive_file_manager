@@ -9,7 +9,7 @@ from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-
+#region List mp4 files
 def get_list_video_mp4_files(credentials) -> dict:
     """Standard blocking function to get mp4 files from Google Drive.
 
@@ -43,7 +43,9 @@ async def async_get_list_video_mp4_files(hass, credentials) -> None:
 
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+#endregion
 
+#region List files by pattern
 def get_list_files_by_pattern(credentials, query: str, fields: str = "files(name)") -> dict:
     """Standard blocking function to get files from Google Drive matching a pattern.
 
@@ -78,7 +80,9 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
 
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+#endregion
 
+#region Upload media file
 def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
     """Based on a folder path, extract the folder ID from Google Drive.
     It will check the availability of a folder ID in the Home Assistant integration data and return that.
@@ -232,15 +236,17 @@ async def async_upload_media_file(hass,
 
     except Exception as e:
         _LOGGER.error("Error uploading file to Google Drive: %s", e, exc_info=True)
+#endregion
 
-def cleanup_drive_files(credentials, pattern: str, days_ago: int, test_run: bool = False) -> list[str]:
+#region Cleanup Drive files
+def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool = False) -> list[str]:
     """Delete files in Drive whose name matches `pattern` and are older than `days_ago`.
 
     Args:
         credentials: Authorized Google credentials.
         pattern (str): Substring to match in file names (uses Drive `name contains` query).
         days_ago (int): Maximum file age in days; any file created before now-days_ago will be deleted.
-        test_run (optional) (bool): If True, only log the files that would be deleted without actually deleting them.
+        preview (optional) (bool): If True, only log the files that would be deleted without actually deleting them.
 
     Returns:
         List of filenames that were deleted.
@@ -270,8 +276,8 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, test_run: bool
         files = response.get("files", [])
         for f in files:
             try:
-                # Check if the test_run parameter is set to False, in that case execute deletion
-                if not test_run:
+                # Check if the preview parameter is set to False, in that case execute deletion
+                if not preview:
                     drive.files().delete(fileId=f["id"]).execute()
 
                 deleted.append(f["name"])
@@ -283,14 +289,14 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, test_run: bool
 
     return deleted
 
-async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: int, test_run: bool = False) -> None:
+async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: int, preview: bool = False) -> None:
     """Async wrapper to delete old Drive files and log the outcome.
 
     Usage: await async_cleanup_drive_files(hass, creds, "camera", 30)
     """
     try:
         deleted = await hass.async_add_executor_job(
-            cleanup_drive_files, credentials, pattern, days_ago, test_run
+            cleanup_drive_files, credentials, pattern, days_ago, preview
         )
         if deleted:
             names = ", ".join(deleted)
@@ -305,3 +311,4 @@ async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: i
             "Error cleaning up Drive files older than %d days matching '%s': %s",
             days_ago, pattern, e, exc_info=True
         )
+#endregion
