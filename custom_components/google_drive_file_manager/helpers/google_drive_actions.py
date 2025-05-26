@@ -237,22 +237,18 @@ def upload_media_file(hass,
         # Set the folder ID in the metadata so the file is uploaded to the correct folder
         file_metadata["parents"] = [folder_id]
 
-    try:
-        request = drive_service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id"
-        )
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status:
-                _LOGGER.info("Upload progress: %d%%", int(status.progress() * 100))
-        _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
-        return response
-    except Exception as e:
-        _LOGGER.error("Error uploading media file to Google Drive: %s", e, exc_info=True)
-        raise
+    request = drive_service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields="id"
+    )
+    response = None
+    while response is None:
+        status, response = request.next_chunk()
+        if status:
+            _LOGGER.info("Upload progress: %d%%", int(status.progress() * 100))
+    _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
+    return response
 
 async def async_upload_media_file(hass, 
                                   credentials, 
@@ -288,6 +284,10 @@ async def async_upload_media_file(hass,
             _LOGGER.info("File uploaded successfully, File ID: %s", file_id)
         else:
             _LOGGER.warning("File upload completed but no File ID was returned.")
+
+    except HomeAssistantError:
+        # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
+        raise  
 
     except Exception as e:
         _LOGGER.error("Error uploading file to Google Drive: %s", e, exc_info=True)
