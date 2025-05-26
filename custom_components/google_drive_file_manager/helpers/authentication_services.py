@@ -13,7 +13,7 @@ async def async_get_google_drive_credentials(hass, entry):
     session: OAuth2Session = hass.data[DOMAIN][entry.entry_id]
 
     # Ensure the OAuth2 token is valid (refresh if needed)
-    await session.async_ensure_token_valid()  # non-blocking :contentReference[oaicite:1]{index=1}
+    await session.async_ensure_token_valid() # non-blocking
     token_data = session.token
 
     # Prepare Google Credentials
