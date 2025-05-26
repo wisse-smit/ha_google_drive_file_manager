@@ -1,0 +1,83 @@
+# custom_components/google_drive/services.yaml
+list_mp4_files:
+  name: List MP4 files
+  description: >
+    Scan your Google Drive and list all `.mp4` files found.
+  fields: {}  # no parameters
+
+upload_media_file:
+  name: Upload media file
+  description: >
+    Upload a local video file to Drive.
+  fields:
+    local_file_path:
+      name: Local file path
+      description: Path to the file on your Home Assistant host.
+      required: true
+      selector:
+        text:
+          placeholder: /config/www/video.mp4
+    mime_type:
+      name: MIME type
+      description: Content type of the file.
+      default: video/mp4
+      selector:
+        text
+    remote_file_name:
+      name: Remote file name
+      description: Filename to use in Drive.
+      required: true
+      selector:
+        text
+    remote_folder_path:
+      name: Remote folder path
+      description: Drive folder (use blank for root).
+      selector:
+        text
+
+cleanup_drive_files:
+  name: Cleanup old Drive files
+  description: >
+    Delete files matching a pattern older than *N* days.  
+    Enable “Preview only” to see which files *would* be deleted.
+    Specify a search pattern to match relevant files (e.g. `"name contains 'report'"`)
+    For more information about the syntax, see https://developers.google.com/workspace/drive/api/guides/search-files
+  fields:
+    pattern:
+      name: Filename pattern
+      description: Glob or regex to match Drive file names.
+      required: true
+      selector:
+        text
+    days_ago:
+      name: Older than (days)
+      description: Only delete files last modified more than this many days ago.
+      required: true
+      selector:
+        number:
+          min: 0
+          step: 1
+    preview:
+      name: Preview only
+      description: Show matching files without deleting them.
+      selector:
+        boolean
+
+list_files_by_pattern:
+  name: List files by pattern
+  description: >
+    Search Drive with a custom query string. Return the fields you specify.
+    For more information about the syntax, see https://developers.google.com/workspace/drive/api/guides/search-files
+  fields:
+    query:
+      name: Query
+      description: Drive API query (e.g. `"name contains 'report'"`).
+      required: true
+      selector:
+        text
+    fields:
+      name: Which file fields to return
+      description: Comma-separated Drive fields (default: `id,name`).
+      default: id,name
+      selector:
+        text

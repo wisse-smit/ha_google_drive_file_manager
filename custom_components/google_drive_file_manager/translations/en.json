@@ -1,0 +1,10 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "Google Drive Setup",
+          "description": "**Follow these steps to get your Google Drive OAuth credentials:**\n\n1. Go to https://console.cloud.google.com/ and create or select a project.\n2. In the left menu, choose **APIs & Services** → **Credentials**.\n3. Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.\n4. Under **Application type** pick **Web application**, give it a name, and in **Authorized redirect URIs** add:\n   `https://my.home-assistant.io/redirect/oauth`\n5. Click **Create**, then copy the **Client ID** and **Client secret** shown.\n\nEnter those values below to finish setup."
+        }
+      }
+    }
+  }
