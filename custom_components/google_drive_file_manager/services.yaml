@@ -1,9 +1,9 @@
-# custom_components/google_drive/services.yaml
+# custom_components/google_drive_file_manager/services.yaml
 list_mp4_files:
   name: List MP4 files
   description: >
     Scan your Google Drive and list all `.mp4` files found.
-  fields: {}  # no parameters
+  fields: {}
 
 upload_media_file:
   name: Upload media file
@@ -22,33 +22,33 @@ upload_media_file:
       description: Content type of the file.
       default: video/mp4
       selector:
-        text
+        text: {}
     remote_file_name:
       name: Remote file name
       description: Filename to use in Drive.
       required: true
       selector:
-        text
+        text: {}
     remote_folder_path:
       name: Remote folder path
-      description: Drive folder (use blank for root).
+      description: Drive folder (leave blank for root).
       selector:
-        text
+        text: {}
 
 cleanup_drive_files:
   name: Cleanup old Drive files
   description: >
     Delete files matching a pattern older than *N* days.  
-    Enable “Preview only” to see which files *would* be deleted.
-    Specify a search pattern to match relevant files (e.g. `"name contains 'report'"`)
-    For more information about the syntax, see https://developers.google.com/workspace/drive/api/guides/search-files
+    Enable **Preview only** to see which files *would* be deleted.  
+    Specify a search pattern to match relevant files (e.g. `"name contains 'report'"`).  
+    See <https://developers.google.com/workspace/drive/api/guides/search-files> for syntax details.
   fields:
     pattern:
       name: Filename pattern
       description: Glob or regex to match Drive file names.
       required: true
       selector:
-        text
+        text: {}
     days_ago:
       name: Older than (days)
       description: Only delete files last modified more than this many days ago.
@@ -61,23 +61,23 @@ cleanup_drive_files:
       name: Preview only
       description: Show matching files without deleting them.
       selector:
-        boolean
+        boolean: {}
 
 list_files_by_pattern:
   name: List files by pattern
   description: >
-    Search Drive with a custom query string. Return the fields you specify.
-    For more information about the syntax, see https://developers.google.com/workspace/drive/api/guides/search-files
+    Search Drive with a custom query string and return only the fields you specify.  
+    See <https://developers.google.com/workspace/drive/api/guides/search-files> for query syntax.
   fields:
     query:
       name: Query
       description: Drive API query (e.g. `"name contains 'report'"`).
       required: true
       selector:
-        text
+        text: {}
     fields:
       name: Which file fields to return
-      description: Comma-separated Drive fields (default: `id,name`).
+      description: "Comma-separated Drive fields (default: `id,name`)."
       default: id,name
       selector:
-        text
+        text: {}
