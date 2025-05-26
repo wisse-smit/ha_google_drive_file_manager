@@ -44,8 +44,14 @@ async def async_get_list_video_mp4_files(hass, credentials) -> None:
         else:
             _LOGGER.warning("No MP4 files found in Google Drive.")
 
+    except HomeAssistantError:
+        # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
+        raise  
+
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"List mp4 files failed: {e}") from e
+    
 #endregion
 
 #region List files by pattern
@@ -80,9 +86,13 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
             _LOGGER.warning("Found %d MP4 file(s): %s", len(files), names)
         else:
             _LOGGER.warning("No MP4 files found in Google Drive.")
+    
+    except HomeAssistantError:
+        raise  
 
     except Exception as e:
-        _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+        _LOGGER.error("Error retrieving list of files from Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"List files failed: {e}") from e
 #endregion
 
 #region Upload media file
@@ -291,6 +301,8 @@ async def async_upload_media_file(hass,
 
     except Exception as e:
         _LOGGER.error("Error uploading file to Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"Drive upload failed: {e}") from e
+
 #endregion
 
 #region Cleanup Drive files
@@ -361,9 +373,14 @@ async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: i
             )
         else:
             _LOGGER.info("No Drive files older than %d days matching '%s' found.", days_ago, pattern)
+    
+    except HomeAssistantError:
+        raise  
+
     except Exception as e:
         _LOGGER.error(
-            "Error cleaning up Drive files older than %d days matching '%s': %s",
-            days_ago, pattern, e, exc_info=True
-        )
+                    "Error cleaning up Drive files older than %d days matching '%s': %s",
+                    days_ago, pattern, e, exc_info=True
+                )        
+        raise HomeAssistantError(f"Cleaning older files failed: {e}") from e
 #endregion
