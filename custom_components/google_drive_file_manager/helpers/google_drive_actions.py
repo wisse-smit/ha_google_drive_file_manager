@@ -252,11 +252,13 @@ def upload_media_file(hass,
         media_body=media,
         fields="id"
     )
+
+    # Execute the upload iteratively until complete
     response = None
+
     while response is None:
-        status, response = request.next_chunk()
-        if status:
-            _LOGGER.info("Upload progress: %d%%", int(status.progress() * 100))
+        _, response = request.next_chunk()
+    
     _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
     return response
 
@@ -340,16 +342,19 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool 
             fields="nextPageToken, files(id, name)",
             pageToken=page_token,
         ).execute()
-        files = response.get("files", [])
-        for f in files:
-            try:
-                # Check if the preview parameter is set to False, in that case execute deletion
-                if not preview:
-                    drive.files().delete(fileId=f["id"]).execute()
 
-                deleted.append(f["name"])
-            except HttpError as err:
-                _LOGGER.error("Failed to delete '%s' (%s): %s", f["name"], f["id"], err)
+        # Get the files from the Google Drive response
+        files = response.get("files", [])
+
+        # Iterate over the files and process them
+        for f in files:
+            # Check if the preview parameter is set to False, in that case execute deletion
+            if not preview:
+                drive.files().delete(fileId=f["id"]).execute()
+
+            deleted.append(f["name"])
+
+        # check if there is a next page token, if not, break the loop
         page_token = response.get("nextPageToken")
         if not page_token:
             break
