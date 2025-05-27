@@ -23,14 +23,8 @@ class GoogleDriveOAuth2Implementation(LocalOAuth2Implementation):
 
     @property
     def redirect_uri(self) -> str:
-        """Return the redirect URI based on the chosen method."""
-        req = http.current_request.get()
-        if req is None:
-            raise RuntimeError("No current request in context")
-        ha_host = req.headers.get("HA-Frontend-Base")
-        if ha_host is None:
-            raise RuntimeError("No HA-Frontend-Base header in request")
-        return f"{ha_host}/auth/external/callback"
+        """Return the set redirect URI."""
+        return "https://my.home-assistant.io/redirect/oauth"
 
     @property
     def extra_authorize_data(self) -> dict:
