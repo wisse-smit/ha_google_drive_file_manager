@@ -60,7 +60,7 @@ class GoogleDriveConfigFlowHandler(
     async def async_step_auth(self, user_input: dict | None = None):
         """Register our OAuth2 implementation and kick off the standard flow."""
         implementation = GoogleDriveOAuth2Implementation(
-            self.hass, self.client_id, self.client_secret, self.use_my_redirect
+            self.hass, self.client_id, self.client_secret
         )
         async_register_implementation(self.hass, DOMAIN, implementation)  # correct helper :contentReference[oaicite:0]{index=0}
         self.flow_impl = implementation
