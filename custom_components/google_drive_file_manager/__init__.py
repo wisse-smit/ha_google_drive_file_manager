@@ -84,6 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             credentials,
             call.data["query"],
             call.data["fields"],
+            call.data["sensor_name"]
         )
 
     # Create a list of all the services we want to register

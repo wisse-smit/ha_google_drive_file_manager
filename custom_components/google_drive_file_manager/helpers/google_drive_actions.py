@@ -4,6 +4,8 @@ from googleapiclient.http import MediaFileUpload
 
 from homeassistant.exceptions import HomeAssistantError
 
+from .create_sensor import async_create_or_update_drive_files_sensor
+
 import os
 from datetime import datetime, timezone, timedelta
 import logging
@@ -71,7 +73,7 @@ def get_list_files_by_pattern(credentials, query: str, fields: str = "files(name
         fields=fields
     ).execute()
 
-async def async_get_list_files_by_pattern(hass, credentials, query: str, fields: str) -> None:
+async def async_get_list_files_by_pattern(hass, credentials, query: str, fields: str, sensor_name: str) -> None:
     """Async function to get mp4 files from Google Drive and log results."""
 
     try:
@@ -86,6 +88,9 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
             _LOGGER.warning("Found %d MP4 file(s): %s", len(files), names)
         else:
             _LOGGER.warning("No MP4 files found in Google Drive.")
+
+        # Create or update the sensor with the list of files
+        await async_create_or_update_drive_files_sensor(hass, sensor_name, files)
     
     except HomeAssistantError:
         raise  

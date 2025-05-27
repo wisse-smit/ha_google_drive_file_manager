@@ -18,5 +18,6 @@ SCHEMAS = {
     "list_files_by_pattern": vol.Schema({
         vol.Required("query"): cv.string,
         vol.Optional("fields", default="id,name"): cv.string,
+        vol.Required("sensor_name"): cv.string,
     }),
 }

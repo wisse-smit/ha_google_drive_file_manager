@@ -74,7 +74,7 @@ list_files_by_pattern:
   fields:
     query:
       name: Query
-      description: Drive API query (e.g. `"name contains 'report'"`).
+      description: Drive API query (e.g. name contains 'backup').
       required: true
       example: name contains 'backup'
       selector:
@@ -82,7 +82,15 @@ list_files_by_pattern:
     fields:
       name: Which file fields to return
       description: "Comma-separated Drive fields (default: `id,name`)."
-      default: id,name
-      example: id,name,createdTime,mimeType
+      default: files(id,name)
+      example: files(id,name)
+      selector:
+        text: {}
+    sensor_name:
+      name: Sensor name
+      description: Name of the sensor to create with the matched files.
+      required: true
+      example: Google Drive Files
+      default: Google Drive Files
       selector:
         text: {}
