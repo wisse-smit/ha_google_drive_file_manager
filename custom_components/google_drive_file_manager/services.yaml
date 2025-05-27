@@ -1,0 +1,88 @@
+# custom_components/google_drive_file_manager/services.yaml
+list_mp4_files:
+  name: List MP4 files
+  description: >
+    Scan your Google Drive and list all `.mp4` files found.
+  fields: {}
+
+upload_media_file:
+  name: Upload media file
+  description: >
+    Upload a local media file to Drive.
+    For more common media types, the mime type will be set automatically.
+  fields:
+    local_file_path:
+      name: Local file path
+      description: Path to the file on your Home Assistant host.
+      required: true
+      example: /config/www/video123.mp4
+      selector:
+        text:
+          placeholder: /config/www/video123.mp4
+    mime_type:
+      name: MIME type
+      description: Content type of the file.
+      default: video/mp4
+      example: video/mp4
+      selector:
+        text: {}
+    remote_file_name:
+      name: Remote file name
+      description: Filename to use in Drive.
+      required: true
+      example: video.mp4
+      selector:
+        text: {}
+    remote_folder_path:
+      name: Remote folder path
+      description: Drive folder (leave blank for root).
+      example: camera/outdoor
+      selector:
+        text: {}
+
+cleanup_drive_files:
+  name: Cleanup old Drive files
+  description: >
+    Delete files matching a pattern older than *N* days.  
+    Enable **Preview only** to see which files *would* be deleted.  
+  fields:
+    pattern:
+      name: Filename pattern
+      description: Pattern to match Drive file names.
+      example: name contains 'backup'
+      required: true
+      selector:
+        text: {}
+    days_ago:
+      name: Older than (days)
+      description: Only delete files last modified more than this many days ago.
+      required: true
+      selector:
+        number:
+          min: 0
+          step: 1
+    preview:
+      name: Preview only
+      description: Show matching files without deleting them.
+      selector:
+        boolean: {}
+
+list_files_by_pattern:
+  name: List files by pattern
+  description: >
+    Search Drive with a custom query string and return only the fields you specify. 
+  fields:
+    query:
+      name: Query
+      description: Drive API query (e.g. `"name contains 'report'"`).
+      required: true
+      example: name contains 'backup'
+      selector:
+        text: {}
+    fields:
+      name: Which file fields to return
+      description: "Comma-separated Drive fields (default: `id,name`)."
+      default: id,name
+      example: id,name,createdTime,mimeType
+      selector:
+        text: {}

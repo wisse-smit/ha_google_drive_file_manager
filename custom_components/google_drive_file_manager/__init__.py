@@ -32,7 +32,6 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
         hass,
         client_id=entry.data["client_id"],
         client_secret=entry.data["client_secret"],
-        use_my_redirect=entry.data.get("use_my_redirect", True),
     )
     async_register_implementation(hass, DOMAIN, implementation)
 

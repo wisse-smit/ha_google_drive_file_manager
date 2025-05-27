@@ -22,8 +22,8 @@ class GoogleDriveConfigFlowHandler(
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        super().__init__()  # Validates DOMAIN != ""
-        self.use_my_redirect = True
+        # Validates DOMAIN != ""
+        super().__init__()
         self.client_id: str | None = None
         self.client_secret: str | None = None
 
@@ -49,20 +49,18 @@ class GoogleDriveConfigFlowHandler(
         if user_input is not None:
             self.client_id = user_input["client_id"]
             self.client_secret = user_input["client_secret"]
-            self.use_my_redirect = user_input["use_my_redirect"]
             return await self.async_step_auth()
 
         data_schema = vol.Schema({
             vol.Required("client_id"): str,
             vol.Required("client_secret"): str,
-            vol.Required("use_my_redirect", default=True): bool,
         })
         return self.async_show_form(step_id="user", data_schema=data_schema)
 
     async def async_step_auth(self, user_input: dict | None = None):
         """Register our OAuth2 implementation and kick off the standard flow."""
         implementation = GoogleDriveOAuth2Implementation(
-            self.hass, self.client_id, self.client_secret, self.use_my_redirect
+            self.hass, self.client_id, self.client_secret
         )
         async_register_implementation(self.hass, DOMAIN, implementation)  # correct helper :contentReference[oaicite:0]{index=0}
         self.flow_impl = implementation

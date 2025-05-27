@@ -2,9 +2,12 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
+from homeassistant.exceptions import HomeAssistantError
+
+import os
 from datetime import datetime, timezone, timedelta
 import logging
-from ..const import DOMAIN
+from ..const import DOMAIN, EXTENSION_MIME_MAP
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,8 +44,14 @@ async def async_get_list_video_mp4_files(hass, credentials) -> None:
         else:
             _LOGGER.warning("No MP4 files found in Google Drive.")
 
+    except HomeAssistantError:
+        # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
+        raise  
+
     except Exception as e:
         _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"List mp4 files failed: {e}") from e
+    
 #endregion
 
 #region List files by pattern
@@ -77,12 +86,60 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
             _LOGGER.warning("Found %d MP4 file(s): %s", len(files), names)
         else:
             _LOGGER.warning("No MP4 files found in Google Drive.")
+    
+    except HomeAssistantError:
+        raise  
 
     except Exception as e:
-        _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
+        _LOGGER.error("Error retrieving list of files from Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"List files failed: {e}") from e
 #endregion
 
 #region Upload media file
+def verify_file_path_exists(file_path: str) -> None:
+    
+    # If the file path is empty, raise an error
+    if not os.path.isfile(file_path):
+        _LOGGER.error(
+            f"upload_media_file: path '{file_path}' is not a valid file"
+        )
+        raise HomeAssistantError(
+            f"Local file '{file_path}' does not exist or is not a file. "
+            "Please check the path and try again."
+        )
+    
+def get_mime_type_from_path(file_path: str) -> str:
+    """Tries to determine mimetype based on a mapping of known mimetypes
+
+    Args:
+        file_path (str): The path to the local file
+
+    Raises:
+        HomeAssistantError: Error specifying that the file extension is not recognized and the user must provide a valid mime_type.
+
+    Returns:
+        str: A string representing the MIME type of the file.
+    """
+        
+    # Extract the file extension from the local file path
+    file_extension = file_path.split('.')[-1].lower()
+
+    # Check if the file extension is in the known MIME type map
+    mime_type = EXTENSION_MIME_MAP.get(file_extension)
+
+    # If the MIME type is still not set, throw error
+    if not mime_type:
+        _LOGGER.error(
+            f"Could not determine MIME type for extension '{file_extension}' (file: {file_path}); user must provide a valid mime_type"
+        )
+        raise HomeAssistantError(
+            f"Invalid file extension '.{file_extension}'. "
+            "Could not auto-detect a MIME type. "
+            "Please specify a valid `mime_type` in your service call."
+        )
+    
+    return mime_type
+
 def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
     """Based on a folder path, extract the folder ID from Google Drive.
     It will check the availability of a folder ID in the Home Assistant integration data and return that.
@@ -147,7 +204,7 @@ def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
 def upload_media_file(hass, 
                     credentials, 
                     local_file_path: str, 
-                    mime_type: str, 
+                    mime_type: str = None, 
                     remote_file_name: str = None, 
                     remote_folder_path: str = None) -> dict:
     """Uploads a large media file to Google Drive.
@@ -165,8 +222,16 @@ def upload_media_file(hass,
         dict: The response from the Google Drive API after the upload.
     """
 
+    # Verify the local file path exists - Exit if not
+    verify_file_path_exists(local_file_path)
+
     drive_service = build("drive", "v3", credentials=credentials)
 
+    # If no MIME type is provided, try to guess it based on the file extension
+    if not mime_type:
+        mime_type = get_mime_type_from_path(local_file_path)
+        
+    # Set up the media file upload
     media = MediaFileUpload(local_file_path, mimetype=mime_type, resumable=True)
 
     file_metadata = {}
@@ -182,22 +247,20 @@ def upload_media_file(hass,
         # Set the folder ID in the metadata so the file is uploaded to the correct folder
         file_metadata["parents"] = [folder_id]
 
-    try:
-        request = drive_service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id"
-        )
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status:
-                _LOGGER.info("Upload progress: %d%%", int(status.progress() * 100))
-        _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
-        return response
-    except Exception as e:
-        _LOGGER.error("Error uploading media file to Google Drive: %s", e, exc_info=True)
-        raise
+    request = drive_service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields="id"
+    )
+
+    # Execute the upload iteratively until complete
+    response = None
+
+    while response is None:
+        _, response = request.next_chunk()
+    
+    _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
+    return response
 
 async def async_upload_media_file(hass, 
                                   credentials, 
@@ -234,8 +297,14 @@ async def async_upload_media_file(hass,
         else:
             _LOGGER.warning("File upload completed but no File ID was returned.")
 
+    except HomeAssistantError:
+        # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
+        raise  
+
     except Exception as e:
         _LOGGER.error("Error uploading file to Google Drive: %s", e, exc_info=True)
+        raise HomeAssistantError(f"Drive upload failed: {e}") from e
+
 #endregion
 
 #region Cleanup Drive files
@@ -273,16 +342,19 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool 
             fields="nextPageToken, files(id, name)",
             pageToken=page_token,
         ).execute()
-        files = response.get("files", [])
-        for f in files:
-            try:
-                # Check if the preview parameter is set to False, in that case execute deletion
-                if not preview:
-                    drive.files().delete(fileId=f["id"]).execute()
 
-                deleted.append(f["name"])
-            except HttpError as err:
-                _LOGGER.error("Failed to delete '%s' (%s): %s", f["name"], f["id"], err)
+        # Get the files from the Google Drive response
+        files = response.get("files", [])
+
+        # Iterate over the files and process them
+        for f in files:
+            # Check if the preview parameter is set to False, in that case execute deletion
+            if not preview:
+                drive.files().delete(fileId=f["id"]).execute()
+
+            deleted.append(f["name"])
+
+        # check if there is a next page token, if not, break the loop
         page_token = response.get("nextPageToken")
         if not page_token:
             break
@@ -306,9 +378,14 @@ async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: i
             )
         else:
             _LOGGER.info("No Drive files older than %d days matching '%s' found.", days_ago, pattern)
+    
+    except HomeAssistantError:
+        raise  
+
     except Exception as e:
         _LOGGER.error(
-            "Error cleaning up Drive files older than %d days matching '%s': %s",
-            days_ago, pattern, e, exc_info=True
-        )
+                    "Error cleaning up Drive files older than %d days matching '%s': %s",
+                    days_ago, pattern, e, exc_info=True
+                )        
+        raise HomeAssistantError(f"Cleaning older files failed: {e}") from e
 #endregion
