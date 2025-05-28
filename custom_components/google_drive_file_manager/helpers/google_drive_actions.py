@@ -8,56 +8,40 @@ from .create_sensor import async_create_or_update_drive_files_sensor
 
 import os
 from datetime import datetime, timezone, timedelta
+import mimetypes
 import logging
-from ..const import DOMAIN, EXTENSION_MIME_MAP
 
+from ..const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-#region List mp4 files
-def get_list_video_mp4_files(credentials) -> dict:
-    """Standard blocking function to get mp4 files from Google Drive.
-
+def generate_full_fields_filter(fields: str, mandatory_fields: list = []) -> str:
+    """Generate a full fields filter for Google Drive API requests including mandatory parameters.
     Args:
-        credentials: The credentials object to access Google Drive.
-
+        fields (str): The fields to include in the response from the Google Drive API.
+        mandatory_id (bool): If True, ensures that the 'id' field is always included in the fields.
     Returns:
-        dict: The response from the Google Drive API containing the list of mp4 files.
+        str: A string representing the full fields filter for the Google Drive API.
     """
-    drive_service = build("drive", "v3", credentials=credentials)
-    return drive_service.files().list(
-        q="mimeType='video/mp4'",
-        fields="files(name)"
-    ).execute()
 
-async def async_get_list_video_mp4_files(hass, credentials) -> None:
-    """Async function to get mp4 files from Google Drive and log results."""
+    # Check if the id field is mandatory
+    if mandatory_fields:
 
-    try:
-        # Offload the blocking call to the executor
-        results = await hass.async_add_executor_job(
-            get_list_video_mp4_files, credentials
-        )
+        # Extract the currently provided fields
+        fields_list = [field.strip() for field in fields.split(",")]
 
-        files = results.get("files", [])
-        if files:
-            names = ", ".join(f["name"] for f in files)
-            _LOGGER.warning("Found %d MP4 file(s): %s", len(files), names)
-        else:
-            _LOGGER.warning("No MP4 files found in Google Drive.")
+        # If the mandatory field is not in the fields, add it
+        for mandatory_field in mandatory_fields:
+            if mandatory_field not in fields_list:
+                fields_list.append(mandatory_field)
 
-    except HomeAssistantError:
-        # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
-        raise  
+        # Join the fields back into a string
+        fields = ",".join(fields_list)
 
-    except Exception as e:
-        _LOGGER.error("Error retrieving MP4 files from Google Drive: %s", e, exc_info=True)
-        raise HomeAssistantError(f"List mp4 files failed: {e}") from e
-    
-#endregion
+    return fields
 
 #region List files by pattern
-def get_list_files_by_pattern(credentials, query: str, fields: str = "files(name)") -> dict:
+def get_list_files_by_pattern(credentials, query: str, fields: str) -> dict:
     """Standard blocking function to get files from Google Drive matching a pattern.
 
     Args:
@@ -68,9 +52,13 @@ def get_list_files_by_pattern(credentials, query: str, fields: str = "files(name
         dict: The response from the Google Drive API containing the list of files matching the pattern.
     """
     drive_service = build("drive", "v3", credentials=credentials)
+
+    # Parse the fields to include in the response
+    fields = generate_full_fields_filter(fields)
+
     return drive_service.files().list(
         q=query,
-        fields=fields
+        fields=f"files({fields})"
     ).execute()
 
 async def async_get_list_files_by_pattern(hass, credentials, query: str, fields: str, sensor_name: str) -> None:
@@ -84,13 +72,23 @@ async def async_get_list_files_by_pattern(hass, credentials, query: str, fields:
 
         files = results.get("files", [])
         if files:
-            names = ", ".join(f["name"] for f in files)
-            _LOGGER.warning("Found %d MP4 file(s): %s", len(files), names)
+            _LOGGER.warning(f"Found {len(files)} matching file(s)")
         else:
-            _LOGGER.warning("No MP4 files found in Google Drive.")
+            _LOGGER.warning("No matching files found in Google Drive.")
 
         # Create or update the sensor with the list of files
-        await async_create_or_update_drive_files_sensor(hass, sensor_name, files)
+
+        # Set the state to the number of files.
+        state = len(files)
+
+        # Set the attributes for the sensor.
+        attributes = {
+            "files": files,
+            "friendly_name": sensor_name,
+            "icon": "mdi:google-drive",
+        }
+
+        await async_create_or_update_drive_files_sensor(hass, sensor_name, state, attributes)
     
     except HomeAssistantError:
         raise  
@@ -114,36 +112,12 @@ def verify_file_path_exists(file_path: str) -> None:
         )
     
 def get_mime_type_from_path(file_path: str) -> str:
-    """Tries to determine mimetype based on a mapping of known mimetypes
+    """Return a MIME type suitable for Drive uploads.
 
-    Args:
-        file_path (str): The path to the local file
-
-    Raises:
-        HomeAssistantError: Error specifying that the file extension is not recognized and the user must provide a valid mime_type.
-
-    Returns:
-        str: A string representing the MIME type of the file.
+    Falls back to application/octet-stream if the type is unknown.
     """
-        
-    # Extract the file extension from the local file path
-    file_extension = file_path.split('.')[-1].lower()
-
-    # Check if the file extension is in the known MIME type map
-    mime_type = EXTENSION_MIME_MAP.get(file_extension)
-
-    # If the MIME type is still not set, throw error
-    if not mime_type:
-        _LOGGER.error(
-            f"Could not determine MIME type for extension '{file_extension}' (file: {file_path}); user must provide a valid mime_type"
-        )
-        raise HomeAssistantError(
-            f"Invalid file extension '.{file_extension}'. "
-            "Could not auto-detect a MIME type. "
-            "Please specify a valid `mime_type` in your service call."
-        )
-    
-    return mime_type
+    mime, _ = mimetypes.guess_type(file_path, strict=False)
+    return mime or "application/octet-stream"
 
 def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
     """Based on a folder path, extract the folder ID from Google Drive.
@@ -208,7 +182,8 @@ def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
 
 def upload_media_file(hass, 
                     credentials, 
-                    local_file_path: str, 
+                    local_file_path: str,
+                    fields: str,
                     mime_type: str = None, 
                     remote_file_name: str = None, 
                     remote_folder_path: str = None) -> dict:
@@ -221,6 +196,7 @@ def upload_media_file(hass,
         mime_type (str): The MIME type of the file.
         remote_filename (str): (optional) The desired name for the file in Google Drive.
         remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
+        fields: (str): The fields to include in the response from the Google Drive API.
 
 
     Returns:
@@ -252,10 +228,14 @@ def upload_media_file(hass,
         # Set the folder ID in the metadata so the file is uploaded to the correct folder
         file_metadata["parents"] = [folder_id]
 
+    # fields to include in the response
+    fields = generate_full_fields_filter(fields)
+
+    # Initiate the file upload request
     request = drive_service.files().create(
         body=file_metadata,
         media_body=media,
-        fields="id"
+        fields=fields
     )
 
     # Execute the upload iteratively until complete
@@ -264,7 +244,6 @@ def upload_media_file(hass,
     while response is None:
         _, response = request.next_chunk()
     
-    _LOGGER.info("File uploaded successfully, File ID: %s", response.get("id"))
     return response
 
 async def async_upload_media_file(hass, 
@@ -272,7 +251,11 @@ async def async_upload_media_file(hass,
                                   local_file_path: str, 
                                   mime_type: str, 
                                   remote_file_name: str, 
-                                  remote_folder_path: str) -> None:
+                                  remote_folder_path: str,
+                                  save_to_sensor: bool,
+                                  sensor_name: str,
+                                  fields: str
+                                  ) -> None:
     """
     Async function to upload a large media file to Google Drive and log results.
     This function offloads the blocking upload operation to an executor and 
@@ -285,6 +268,9 @@ async def async_upload_media_file(hass,
         mime_type (str): The MIME type of the file.
         remote_file_name (str): The desired name for the file in Google Drive.
         remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
+        save_to_sensor (bool): Whether to save the uploaded file information to a sensor.
+        sensor_name (str): The name of the sensor to save the uploaded file information.
+        fields (str): The fields to include in the response from the Google Drive API.
 
     Returns:
         None: This function does not return a value. It logs the result of the 
@@ -294,13 +280,36 @@ async def async_upload_media_file(hass,
     try:
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
-            upload_media_file, hass, credentials, local_file_path, mime_type, remote_file_name, remote_folder_path)
+            upload_media_file, 
+            hass, 
+            credentials, 
+            local_file_path,
+            fields, 
+            mime_type, 
+            remote_file_name, 
+            remote_folder_path
+            )
 
-        file_id = response.get("id")
-        if file_id:
-            _LOGGER.info("File uploaded successfully, File ID: %s", file_id)
-        else:
-            _LOGGER.warning("File upload completed but no File ID was returned.")
+        _LOGGER.info("File uploaded successfully")
+
+        # Check if the results should be written to a sensor
+        if save_to_sensor:
+            
+            # Set the state to the name of the remote file if available
+            if remote_file_name:
+                state = remote_file_name
+            # If no remote file name is provided, use the local file name as state
+            else:
+                state = local_file_path.split("/")[-1]  # Use the local file name as state if no remote name is provided
+
+            # Create or update the sensor with the uploaded file information
+            await async_create_or_update_drive_files_sensor(
+                hass, 
+                sensor_name, 
+                state,
+                response
+            )
+
 
     except HomeAssistantError:
         # already user-friendly (verify_file_path_exists or get_mime_type_from_path)
@@ -313,14 +322,15 @@ async def async_upload_media_file(hass,
 #endregion
 
 #region Cleanup Drive files
-def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool = False) -> list[str]:
+def cleanup_older_files_by_pattern(credentials, pattern: str, days_ago: int, preview: bool, fields: str) -> list[str]:
     """Delete files in Drive whose name matches `pattern` and are older than `days_ago`.
 
     Args:
         credentials: Authorized Google credentials.
         pattern (str): Substring to match in file names (uses Drive `name contains` query).
         days_ago (int): Maximum file age in days; any file created before now-days_ago will be deleted.
-        preview (optional) (bool): If True, only log the files that would be deleted without actually deleting them.
+        preview (bool): If True, only log the files that would be deleted without actually deleting them.
+        fields (str): The fields to include in the response from the Google Drive API.
 
     Returns:
         List of filenames that were deleted.
@@ -341,10 +351,14 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool 
 
     deleted = []
     page_token = None
+
+    # Generate the full fields filter, ensuring 'id' is always included
+    fields = generate_full_fields_filter(fields, mandatory_fields=["id", "name"])
+
     while True:
         response = drive.files().list(
             q=query,
-            fields="nextPageToken, files(id, name)",
+            fields=f"nextPageToken, files({fields})",
             pageToken=page_token,
         ).execute()
 
@@ -352,12 +366,12 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool 
         files = response.get("files", [])
 
         # Iterate over the files and process them
-        for f in files:
+        for file in files:
             # Check if the preview parameter is set to False, in that case execute deletion
             if not preview:
-                drive.files().delete(fileId=f["id"]).execute()
+                drive.files().delete(fileId=file["id"]).execute()
 
-            deleted.append(f["name"])
+            deleted.append(file["name"])
 
         # check if there is a next page token, if not, break the loop
         page_token = response.get("nextPageToken")
@@ -366,14 +380,22 @@ def cleanup_drive_files(credentials, pattern: str, days_ago: int, preview: bool 
 
     return deleted
 
-async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: int, preview: bool = False) -> None:
+async def async_cleanup_older_files_by_pattern(
+        hass, 
+        credentials, 
+        pattern: str, 
+        days_ago: int, 
+        preview: bool, 
+        save_to_sensor: bool, 
+        sensor_name: str, 
+        fields: str) -> None:
     """Async wrapper to delete old Drive files and log the outcome.
 
-    Usage: await async_cleanup_drive_files(hass, creds, "camera", 30)
+    Usage: await async_cleanup_older_files_by_pattern(hass, creds, "camera", 30)
     """
     try:
         deleted = await hass.async_add_executor_job(
-            cleanup_drive_files, credentials, pattern, days_ago, preview
+            cleanup_older_files_by_pattern, credentials, pattern, days_ago, preview, fields
         )
         if deleted:
             names = ", ".join(deleted)
@@ -383,6 +405,27 @@ async def async_cleanup_drive_files(hass, credentials, pattern: str, days_ago: i
             )
         else:
             _LOGGER.info("No Drive files older than %d days matching '%s' found.", days_ago, pattern)
+
+        # Check if the results should be written to a sensor
+        if save_to_sensor:
+            
+            # Set the state to the number of deleted files
+            state = len(deleted)
+
+            # Set the attributes for the sensor.
+            attributes = {
+                "files": deleted,
+                "friendly_name": sensor_name,
+                "icon": "mdi:google-drive",
+            }
+
+            # Create or update the sensor with the uploaded file information
+            await async_create_or_update_drive_files_sensor(
+                hass, 
+                sensor_name, 
+                state,
+                attributes
+            )
     
     except HomeAssistantError:
         raise  

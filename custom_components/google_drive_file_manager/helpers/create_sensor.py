@@ -30,7 +30,8 @@ def _create_entity_id(name: str) -> str:
 async def async_create_or_update_drive_files_sensor(
     hass: HomeAssistant,
     sensor_name: str,
-    files: List[dict[str, Any]],
+    state: int | str,
+    attributes: dict[str, Any] | None = None
 ) -> None:
     """Create or update a sensor that stores a Google Drive file list.
 
@@ -45,15 +46,6 @@ async def async_create_or_update_drive_files_sensor(
         The `files` array returned by the Drive v3 API.
     """
     entity_id = _create_entity_id(sensor_name)
- 
-    # Set the state to the number of files.
-    state = len(files)
 
-    # Set the attributes for the sensor.
-    attributes = {
-        "files": files,
-        "friendly_name": sensor_name,
-        "icon": "mdi:google-drive",
-    }
-
+    # Set the state and attributes of the sensor.
     hass.states.async_set(entity_id, state, attributes)
