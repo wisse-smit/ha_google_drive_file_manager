@@ -24,5 +24,7 @@ SCHEMAS = {
         vol.Required("query"): cv.string,
         vol.Optional("sensor_name", default="List files"): cv.string,
         vol.Optional("fields", default="id,name,createdTime"): cv.string,
+        vol.Optional("sort_by_recent", default=True): cv.boolean,
+        vol.Optional("maximum_files", default=0): cv.positive_int,
     }),
 }

@@ -131,4 +131,22 @@ list_files_by_pattern:
       example: id,name
       selector:
         text: {}
+    sort_by_recent:
+      name: Sort by recency
+      description: >
+        List the files sorted by recency (newest first).
+        If false, results are sorted by name.
+      default: true
+      selector:
+        boolean: {}
+    maximum_files:
+      name: Maximum files to return
+      description: >
+        Define the maximum number of files to return.
+        Set to 0 to return all matching files.
+      default: 0
+      selector:
+        number:
+          min: 0
+          step: 1
     

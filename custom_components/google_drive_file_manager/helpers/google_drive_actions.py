@@ -41,7 +41,7 @@ def generate_full_fields_filter(fields: str, mandatory_fields: list = []) -> str
     return fields
 
 #region List files by pattern
-def get_list_files_by_pattern(credentials, query: str, fields: str) -> dict:
+def get_list_files_by_pattern(credentials, query: str, fields: str, sort_by_recent: bool, maximum_files: int) -> dict:
     """Standard blocking function to get files from Google Drive matching a pattern.
 
     Args:
@@ -56,18 +56,67 @@ def get_list_files_by_pattern(credentials, query: str, fields: str) -> dict:
     # Parse the fields to include in the response
     fields = generate_full_fields_filter(fields)
 
-    return drive_service.files().list(
-        q=query,
-        fields=f"files({fields})"
-    ).execute()
+    # Set the response fields, including nextPageToken to handle pagination
+    response_fields = f"nextPageToken, files({fields})"
 
-async def async_get_list_files_by_pattern(hass, credentials, query: str, fields: str, sensor_name: str) -> None:
+    all_files = []
+    page_token = None
+
+    while True:
+        # Prepare request parameters
+        request_params = {
+            'q': query,
+            'fields': response_fields,
+            'pageToken': page_token
+        }
+
+        # If sort_by_recent is True, order by modifiedTime descending
+        if sort_by_recent:
+            request_params['orderBy'] = 'modifiedTime desc'
+
+        # If maximum_files is specified, limit the number of items returned
+        if maximum_files:
+            # Use pageSize to avoid fetching too many items at once
+            # Google Drive API max pageSize is 1000
+            page_size = min(maximum_files, 1000)
+            request_params['pageSize'] = page_size
+
+        request = drive_service.files().list(**request_params)
+        response = request.execute()
+
+        files = response.get('files', [])
+
+        # If max items is set, check how many files we already have and still have to get
+        if maximum_files:
+            remaining = maximum_files - len(all_files)
+            all_files.extend(files[:remaining])
+        # If max items is not set, just extend the list with all files
+        else:
+            all_files.extend(files)
+
+        # Stop if we've collected enough or no more pages
+        if maximum_files and len(all_files) >= maximum_files:
+            break
+        page_token = response.get('nextPageToken')
+        if not page_token:
+            break
+
+    return {'files': all_files}
+
+async def async_get_list_files_by_pattern(
+    hass, 
+    credentials, 
+    query: str, 
+    fields: str, 
+    sensor_name: str,
+    sort_by_recent: bool,
+    maximum_files: int) -> None:
     """Async function to get mp4 files from Google Drive and log results."""
 
     try:
         # Offload the blocking call to the executor
         results = await hass.async_add_executor_job(
-            get_list_files_by_pattern, credentials, query, fields
+            get_list_files_by_pattern, credentials, query, fields, sort_by_recent, maximum_files
         )
 
         files = results.get("files", [])
