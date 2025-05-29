@@ -15,7 +15,6 @@ upload_media_file:
     mime_type:
       name: MIME type
       description: Content type of the file.
-      default: video/mp4
       example: video/mp4
       selector:
         text: {}
@@ -49,8 +48,7 @@ upload_media_file:
     fields:
       name: File fields to return
       description: >
-        Comma-separated Drive fields to return in the sensor (e.g. id,name,webContentLink,webViewLink).
-        Default is: id,name,webContentLink.
+        Comma-separated Drive fields to return in the sensor.
       default: id,name,webContentLink,webViewLink
       example: id,name,webContentLink,webViewLink
       selector:
@@ -100,8 +98,7 @@ cleanup_older_files_by_pattern:
     fields:
       name: File fields to return
       description: >
-        Comma-separated Drive fields to return in the sensor (e.g. id,name,webContentLink).
-        Default is: id,name, createdTime.
+        Comma-separated Drive fields to return in the sensor.
       default: id,name,createdTime
       example: id,name,createdTime
       selector:

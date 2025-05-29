@@ -5,8 +5,8 @@ from homeassistant.helpers import config_validation as cv
 SCHEMAS = {
     "upload_media_file": vol.Schema({
         vol.Required("local_file_path"): cv.string,
-        vol.Optional("mime_type"): cv.string,
-        vol.Optional("remote_file_name"): cv.string,
+        vol.Optional("mime_type", default =""): cv.string,
+        vol.Optional("remote_file_name", default =""): cv.string,
         vol.Optional("remote_folder_path", default=""): cv.string,
         vol.Optional("save_to_sensor", default=False): cv.boolean,
         vol.Optional("sensor_name", default="Latest uploaded file"): cv.string,
