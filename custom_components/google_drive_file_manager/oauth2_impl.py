@@ -1,5 +1,4 @@
 import logging
-from yarl import URL
 from homeassistant.components import http
 from homeassistant.helpers.config_entry_oauth2_flow import LocalOAuth2Implementation
 
