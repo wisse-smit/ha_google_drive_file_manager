@@ -1,0 +1,9 @@
+{
+    "name": "Google Drive file manager",
+    "content_in_root": false,
+    "content": "integration",
+    "homeassistant": "2025.4.4",
+    "render_readme": true,
+    "domains": ["google_drive_file_manager"],
+    "zip_release": false
+  }
