@@ -4,7 +4,7 @@ from googleapiclient.http import MediaFileUpload
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .create_sensor import async_create_or_update_drive_files_sensor
+from .create_sensor import async_create_or_update_sensor
 
 import os
 from datetime import datetime, timezone, timedelta
@@ -73,6 +73,9 @@ def get_list_files_by_pattern(credentials, query: str, fields: str, sort_by_rece
         # If sort_by_recent is True, order by modifiedTime descending
         if sort_by_recent:
             request_params['orderBy'] = 'modifiedTime desc'
+        # If not sort by recent, sort by name
+        else:
+            request_params['orderBy'] = 'name'
 
         # If maximum_files is specified, limit the number of items returned
         if maximum_files:
@@ -137,7 +140,7 @@ async def async_get_list_files_by_pattern(
             "icon": "mdi:google-drive",
         }
 
-        await async_create_or_update_drive_files_sensor(hass, sensor_name, state, attributes)
+        await async_create_or_update_sensor(hass, sensor_name, state, attributes)
     
     except HomeAssistantError:
         raise  
@@ -357,7 +360,7 @@ async def async_upload_media_file(hass,
             state = remote_file_name
 
             # Create or update the sensor with the uploaded file information
-            await async_create_or_update_drive_files_sensor(
+            await async_create_or_update_sensor(
                 hass, 
                 sensor_name, 
                 state,
@@ -474,7 +477,7 @@ async def async_cleanup_older_files_by_pattern(
             }
 
             # Create or update the sensor with the uploaded file information
-            await async_create_or_update_drive_files_sensor(
+            await async_create_or_update_sensor(
                 hass, 
                 sensor_name, 
                 state,

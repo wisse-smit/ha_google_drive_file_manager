@@ -27,7 +27,7 @@ def _create_entity_id(name: str) -> str:
     return f"sensor.{slugify(name)}"
 
 
-async def async_create_or_update_drive_files_sensor(
+async def async_create_or_update_sensor(
     hass: HomeAssistant,
     sensor_name: str,
     state: int | str,
