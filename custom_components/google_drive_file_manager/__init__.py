@@ -1,14 +1,10 @@
 import logging
-from functools import partial
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.config_entry_oauth2_flow import (
-    async_get_config_entry_implementation,
     async_register_implementation,
     OAuth2Session,
 )
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
 
 from .oauth2_impl import GoogleDriveOAuth2Implementation
 from .helpers.authentication_services import async_get_google_drive_credentials
@@ -19,7 +15,7 @@ from .helpers.google_drive_actions import (
     )
 from .helpers.service_schemas import SCHEMAS
 
-from .const import DOMAIN, SCOPES, OAUTH2_TOKEN
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,7 +78,9 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             credentials,
             call.data["query"],
             call.data["fields"],
-            call.data["sensor_name"]
+            call.data["sensor_name"],
+            call.data["sort_by_recent"],
+            call.data["maximum_files"],
         )
 
     # Create a list of all the services we want to register
