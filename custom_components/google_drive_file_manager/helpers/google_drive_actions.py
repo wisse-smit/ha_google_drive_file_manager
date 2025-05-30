@@ -281,7 +281,11 @@ async def async_upload_media_file(hass,
 
         # If no remote file name is provided, use the local file name as the remote file name
         if not remote_file_name:
-            remote_file_name = local_file_path.split("/")[-1]
+            # Extract the file name from the local file path including the file extension
+            remote_file_name_with_extension = local_file_path.split("/")[-1]
+            # Remove the file extension from the remote file name
+            remote_file_name = remote_file_name_with_extension.split(".")[0]
+
 
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
