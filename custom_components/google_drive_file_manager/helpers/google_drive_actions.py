@@ -266,7 +266,7 @@ def upload_media_file(hass,
 
     file_metadata = {}
     
-    # Set the remote (Drive) filename is provided
+    # Set the remote (Drive) filename is provided (should always be the case)
     if remote_file_name:
         file_metadata["name"] = remote_file_name
 
@@ -327,6 +327,15 @@ async def async_upload_media_file(hass,
     """
     
     try:
+
+        # If no remote file name is provided, use the local file name as the remote file name
+        if not remote_file_name:
+            # Extract the file name from the local file path including the file extension
+            remote_file_name_with_extension = local_file_path.split("/")[-1]
+            # Remove the file extension from the remote file name
+            remote_file_name = remote_file_name_with_extension.split(".")[0]
+
+
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
             upload_media_file, 
@@ -344,12 +353,8 @@ async def async_upload_media_file(hass,
         # Check if the results should be written to a sensor
         if save_to_sensor:
             
-            # Set the state to the name of the remote file if available
-            if remote_file_name:
-                state = remote_file_name
-            # If no remote file name is provided, use the local file name as state
-            else:
-                state = local_file_path.split("/")[-1]  # Use the local file name as state if no remote name is provided
+            # Set the state to the name of the remote file
+            state = remote_file_name
 
             # Create or update the sensor with the uploaded file information
             await async_create_or_update_drive_files_sensor(
