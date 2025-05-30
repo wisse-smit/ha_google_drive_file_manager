@@ -1,10 +1,3 @@
-# custom_components/google_drive_file_manager/services.yaml
-list_mp4_files:
-  name: List MP4 files
-  description: >
-    Scan your Google Drive and list all `.mp4` files found.
-  fields: {}
-
 upload_media_file:
   name: Upload media file
   description: >
@@ -22,14 +15,12 @@ upload_media_file:
     mime_type:
       name: MIME type
       description: Content type of the file.
-      default: video/mp4
       example: video/mp4
       selector:
         text: {}
     remote_file_name:
       name: Remote file name
       description: Filename to use in Drive.
-      required: true
       example: video.mp4
       selector:
         text: {}
@@ -39,8 +30,31 @@ upload_media_file:
       example: camera/outdoor
       selector:
         text: {}
+    save_to_sensor:
+      name: Save to sensor
+      description: >
+        Save the uploaded file information to a sensor entity.
+        The sensor will be updated with the fields specified.
+      default: false
+      selector:
+        boolean: {}
+    sensor_name:
+      name: Sensor name
+      description: Name of the sensor to create with the uploaded file info.
+      default: Google Drive uploaded file
+      example: Google Drive uploaded file
+      selector:
+        text: {}
+    fields:
+      name: File fields to return
+      description: >
+        Comma-separated Drive fields to return in the sensor.
+      default: id,name,webContentLink,webViewLink
+      example: id,name,webContentLink,webViewLink
+      selector:
+        text: {}
 
-cleanup_drive_files:
+cleanup_older_files_by_pattern:
   name: Cleanup old Drive files
   description: >
     Delete files matching a pattern older than *N* days.  
@@ -66,23 +80,55 @@ cleanup_drive_files:
       description: Show matching files without deleting them.
       selector:
         boolean: {}
+    save_to_sensor:
+      name: Save to sensor
+      description: >
+        Save the deleted files information to a sensor entity.
+        The sensor will be updated with the fields specified.
+      default: false
+      selector:
+        boolean: {}
+    sensor_name:
+      name: Sensor name
+      description: Name of the sensor to create with the deleted files info.
+      default: Latest deleted files
+      example: Latest deleted files
+      selector:
+        text: {}
+    fields:
+      name: File fields to return
+      description: >
+        Comma-separated Drive fields to return in the sensor.
+      default: id,name,createdTime
+      example: id,name,createdTime
+      selector:
+        text: {}
 
 list_files_by_pattern:
   name: List files by pattern
   description: >
-    Search Drive with a custom query string and return only the fields you specify. 
+    Search Drive with a custom query string and return only the fields you specify.
+    The matched files will be returned as a sensor entity. 
   fields:
     query:
       name: Query
-      description: Drive API query (e.g. `"name contains 'report'"`).
+      description: Drive API query (e.g. name contains 'backup').
       required: true
       example: name contains 'backup'
       selector:
         text: {}
-    fields:
-      name: Which file fields to return
-      description: "Comma-separated Drive fields (default: `id,name`)."
-      default: id,name
-      example: id,name,createdTime,mimeType
+    sensor_name:
+      name: Sensor name
+      description: Name of the sensor to create with the matched files.
+      example: Google Drive files list
+      default: Google Drive files list
       selector:
         text: {}
+    fields:
+      name: File fields to return
+      description: "Comma-separated Drive fields (e.g. id,name)."
+      default: id,name
+      example: id,name
+      selector:
+        text: {}
+    

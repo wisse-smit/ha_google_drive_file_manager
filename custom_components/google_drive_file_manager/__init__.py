@@ -13,10 +13,9 @@ from google.oauth2.credentials import Credentials
 from .oauth2_impl import GoogleDriveOAuth2Implementation
 from .helpers.authentication_services import async_get_google_drive_credentials
 from .helpers.google_drive_actions import (
-    async_get_list_video_mp4_files,
     async_get_list_files_by_pattern,
     async_upload_media_file,
-    async_cleanup_drive_files,
+    async_cleanup_older_files_by_pattern,
     )
 from .helpers.service_schemas import SCHEMAS
 
@@ -39,13 +38,6 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
     session = OAuth2Session(hass, entry, implementation)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = session
 
-    async def list_mp4_files(call: ServiceCall) -> None:
-        """Service to list mp4 files in Google Drive."""
-
-        # Get valid credentials (auto‑refresh if needed)
-        credentials = await async_get_google_drive_credentials(hass, entry)
-        # Fetch & log MP4 list
-        await async_get_list_video_mp4_files(hass, credentials)
 
     async def upload_media_file(call: ServiceCall) -> None:
         """Service to upload a large media file to Google Drive."""
@@ -59,19 +51,25 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             call.data["mime_type"],
             call.data["remote_file_name"],
             call.data["remote_folder_path"],
+            call.data["save_to_sensor"],
+            call.data["sensor_name"],
+            call.data["fields"],
         )
 
-    async def cleanup_drive_files(call: ServiceCall) -> None:
+    async def cleanup_older_files_by_pattern(call: ServiceCall) -> None:
         """Service to clean up files in Google Drive."""
         # Get valid credentials (auto‑refresh if needed)
         credentials = await async_get_google_drive_credentials(hass, entry)
         # Clean up the files
-        await async_cleanup_drive_files(
+        await async_cleanup_older_files_by_pattern(
             hass,
             credentials,
             call.data["pattern"],
             call.data["days_ago"],
-            call.data["preview"]
+            call.data["preview"],
+            call.data["save_to_sensor"],
+            call.data["sensor_name"],
+            call.data["fields"],
         )
 
     async def list_files_by_pattern(call: ServiceCall) -> None:
@@ -84,13 +82,13 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             credentials,
             call.data["query"],
             call.data["fields"],
+            call.data["sensor_name"]
         )
 
     # Create a list of all the services we want to register
     services = {
-        "list_mp4_files": list_mp4_files,
         "upload_media_file": upload_media_file,
-        "cleanup_drive_files": cleanup_drive_files,
+        "cleanup_older_files_by_pattern": cleanup_older_files_by_pattern,
         "list_files_by_pattern": list_files_by_pattern,
     }
 
@@ -109,6 +107,10 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry) -> bool:
     """Unload Google Drive integration."""
-    hass.services.async_remove(DOMAIN, "list_mp4_files")
+
+    # Unregister the services from the integration
+    for service_name in SCHEMAS:
+        hass.services.async_remove(DOMAIN, service_name)
+        
     hass.data[DOMAIN].pop(entry.entry_id)
     return True
