@@ -1,0 +1,4 @@
+google-auth==2.16.0
+google-auth-oauthlib==0.5.3
+google-api-python-client==2.86.0
+homeassistant==2024.3.3
