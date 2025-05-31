@@ -21,7 +21,7 @@ def get_google_drive_credentials():
         raise RuntimeError("Please set GOOGLE_DRIVE_CLIENT_ID, GOOGLE_DRIVE_CLIENT_SECRET, and GOOGLE_DRIVE_REFRESH_TOKEN in your .env")
 
     OAUTH2_TOKEN_URI = "https://oauth2.googleapis.com/token"
-    SCOPES = ["https://www.googleapis.com/auth/drive.file"]  # or ["https://www.googleapis.com/auth/drive"] for full access
+    SCOPES = ["https://www.googleapis.com/auth/drive"]  # or ["https://www.googleapis.com/auth/drive"] for full access
 
     # Gets the credentials using the provided tokens, if expired, the library will handle refreshing them automatically
     credentials = Credentials(
