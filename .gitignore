@@ -1,3 +1,6 @@
 .env
 /venv
 tests/*.txt
+**/__pycache__/
+**/*.pyc
+**/*.pyo
