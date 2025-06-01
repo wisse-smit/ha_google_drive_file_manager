@@ -1,7 +1,7 @@
 {
     "domain": "google_drive_file_manager",
     "name": "Google Drive file manager",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "documentation": "https://github.com/wisse-smit/ha_google_drive_file_manager",
     "requirements": [
       "google-auth==2.16.0",

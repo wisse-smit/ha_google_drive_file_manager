@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Get Google Credentials",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/custom_components/tests/get_google_drive_auth_details.py",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder}",
+        "python": "${workspaceFolder}/venv/bin/python"
+      },
+      {
+        "name": "Run Google Drive function tests",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/tests/test_services.py",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder}",
+        "python": "${workspaceFolder}/venv/bin/python",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}"
+        }
+      },
+      {
+        "name": "Run specific service",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/tests/test_service.py",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder}",
+        "python": "${workspaceFolder}/venv/bin/python",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}"
+        }
+      }
+    ]
+  }
+  
