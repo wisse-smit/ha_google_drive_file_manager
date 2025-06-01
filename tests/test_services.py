@@ -3,26 +3,32 @@ from custom_components.google_drive_file_manager.helpers.google_drive_actions im
     upload_media_file,
     cleanup_older_files_by_pattern
 )
-from custom_components.tests.get_google_credentials import get_google_drive_credentials
+from tests.get_google_credentials import get_google_drive_credentials
 
+import pytest
 
-if __name__ == "__main__":
+@pytest.fixture(scope="module")
+def google_drive_credentials():
+    return get_google_drive_credentials()
 
-    # Get the credentials
-    google_drive_credentials = get_google_drive_credentials()
+class HassDummy:
+    def __init__(self):
+        self.data = {}
 
-    # Mock the Home Assistant object so the code doesnt crash
-    class hass_object:
-        def __init__(self):
-            self.data = {}
-    
-    # Write a temp file to simulate a media file
-    test_file_path_to = "custom_components/tests"
+@pytest.mark.usefixtures("google_drive_credentials")
+def test_google_drive_end_to_end(google_drive_credentials):
+    """
+    Uploads a few test files to Drive, verifies listing sorted by recent/name,
+    then tests cleanup (preview and actual delete).
+    """
+    # Mock hass
+    hass = HassDummy()
+
+    # CONFIGURE THE TEST
+    test_file_path_to = "tests"
     test_file_file_name_local = "test_file"
     test_file_base_name_drive = "f8fasd89faw4rjl32fkjwjlfasdfjklasf"
-
-    # Define the number of test files to create
-    test_file_n = 3
+    test_file_n = 3 # Define the number of test files to create
 
     # Clean up older files by pattern
     response = cleanup_older_files_by_pattern(
@@ -45,7 +51,7 @@ if __name__ == "__main__":
         # Upload a media file to Google Drive
         response = upload_media_file(
             credentials=google_drive_credentials,
-            hass=hass_object(),
+            hass=hass,
             local_file_path=full_file_path,
             fields="id, name, mimeType, size, modifiedTime",
             remote_file_name=f"{test_file_base_name_drive}-{i}.txt",

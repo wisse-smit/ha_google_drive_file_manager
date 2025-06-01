@@ -1,15 +1,15 @@
 # test_drive_list.py
 
 import os
-# from pathlib import Path
+from dotenv import load_dotenv
+from pathlib import Path
 
-# from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
 
 def get_google_drive_credentials():
     # We want to point load_dotenv() at the repo root’s .env, so:
-    # env_path = Path(__file__).resolve().parents[2] / ".env"
-    # load_dotenv(dotenv_path=env_path)
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    load_dotenv(env_path)
 
     # Now os.getenv(...) can read from .env:
     CLIENT_ID = os.getenv("GOOGLE_DRIVE_CLIENT_ID")
