@@ -49,10 +49,7 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
 5. **Scopes**: Click **Add or Remove Scopes**.
 
    * Filter by typing `drive`.
-   * Depending on your planned usage, either select:
-
-     * `https://www.googleapis.com/auth/drive.file`: Grants read/write access to files created or opened by the app.
-     * `https://www.googleapis.com/auth/drive`: Grants full, permissive scope to access all of a user’s files
+   * `https://www.googleapis.com/auth/drive`: Grants full, permissive scope to access all of a user’s files, needed to read all files and use all services.
    * Click **Update** and then **Save and Continue**.
 6. **Test Users**: Add the Google account(s) you will use to authenticate (your own email).
 

@@ -205,7 +205,7 @@ def extract_folder_id_from_path(hass, credentials, folder_remote_path: str):
         # look for an existing folder with this name under parent_id
         q = (
             "mimeType = 'application/vnd.google-apps.folder' and "
-            f"name = '{segment.replace('\"', '\\\"')}' and "
+            f"name = '{segment}' and " #.replace('\"', '\\\"')
             f"'{parent_id}' in parents and trashed = false"
         )
         resp = drive.files().list(q=q, fields="files(id,name)", pageSize=1).execute()

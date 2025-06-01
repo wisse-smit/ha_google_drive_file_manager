@@ -1,16 +1,3 @@
-"""
-• The sensor´s **state** = number of matching files.
-• State attribute **files** = full metadata list (id, name, …) for use in
-  templates/automations.
-• A `mdi:google-drive` icon and the user‑provided friendly name are applied
-  automatically.
-
-Because this uses `hass.states.async_set` it will work even if you call it from
-inside a service handler without going through `async_add_entities`.
-The sensor is re‑created on every Home Assistant restart the first time the
-function is called again.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -23,7 +10,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _create_entity_id(name: str) -> str:
-    """Return a valid `sensor.<slug>` entity_id from an arbitrary name."""
+    """Return a valid `sensor.<slug>` entity_id from an arbitrary name.
+    
+    args:
+        name (str): The name of the sensor, e.g., "Camera Backups".
+    Returns:
+        str: A valid entity_id, e.g., "sensor.camera_backups".
+    """
     return f"sensor.{slugify(name)}"
 
 
@@ -33,17 +26,14 @@ async def async_create_or_update_sensor(
     state: int | str,
     attributes: dict[str, Any] | None = None
 ) -> None:
-    """Create or update a sensor that stores a Google Drive file list.
+    """
+    Create or update a sensor that stores a Google Drive file list.
 
-    Parameters
-    ----------
-    hass : HomeAssistant
-        The running Home Assistant instance.
-    sensor_name : str
-        Friendly name chosen by the user (e.g. "Camera Backups").
+    Args:
+        hass (HomeAssistant): The running Home Assistant instance.
+        sensor_name (str): Friendly name chosen by the user (e.g., "Camera Backups").
         Will be slugified for the entity_id.
-    files : list[dict]
-        The `files` array returned by the Drive v3 API.
+        files (list[dict]): The `files` array returned by the Drive v3 API.
     """
     entity_id = _create_entity_id(sensor_name)
 
