@@ -47,6 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry) -> bool:
             call.data["mime_type"],
             call.data["remote_file_name"],
             call.data["remote_folder_path"],
+            call.data["append_ymd_path"],
             call.data["save_to_sensor"],
             call.data["sensor_name"],
             call.data["fields"],
