@@ -14,7 +14,19 @@
         "name": "Run Google Drive function tests",
         "type": "debugpy",
         "request": "launch",
-        "program": "${workspaceFolder}/custom_components/tests/test_services.py",
+        "program": "${workspaceFolder}/tests/test_services.py",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder}",
+        "python": "${workspaceFolder}/venv/bin/python",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}"
+        }
+      },
+      {
+        "name": "Run specific service",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/tests/test_service.py",
         "console": "integratedTerminal",
         "cwd": "${workspaceFolder}",
         "python": "${workspaceFolder}/venv/bin/python",
