@@ -110,7 +110,21 @@ if __name__ == "__main__":
     assert len(preview_response) == test_file_n, "Preview did not return the expected number of files"
     assert len(found_files.get("files", [])) == test_file_n, "Did not find the expected number of files, preview failed"
     
-    # Clean up older files by pattern
+    # Clean up older files by pattern - should not remove anything (files are not older than 1 day)
+    delete_response = cleanup_older_files_by_pattern(
+        credentials=google_drive_credentials,
+        pattern=f"name contains '{test_file_base_name_drive}' and trashed = false",
+        days_ago=1,
+        preview=False,
+        fields="id, name, mimeType",
+    )
+
+    assert type(delete_response) is list, "Cleanup failed"
+    assert len(delete_response) == 0, "Deleted files, even though it shouldn't have"
+
+
+
+    # Clean up test files by pattern (days_ago=0)
     delete_response = cleanup_older_files_by_pattern(
         credentials=google_drive_credentials,
         pattern=f"name contains '{test_file_base_name_drive}' and trashed = false",
