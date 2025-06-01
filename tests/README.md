@@ -8,8 +8,8 @@ To setup the testing, we first need to set up authentication to Google Drive. A 
 2. After setting up the virtual environment, activate it
 
    ```
-   linux: source venv/bin/activate
-   windows: venv/Scripts/activate
+   Linux: source venv/bin/activate
+   Windows: venv/Scripts/activate
    ```
 3. Install the requirements in the virtual environment
 
