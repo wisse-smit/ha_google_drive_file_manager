@@ -27,15 +27,24 @@ async def async_create_or_update_sensor(
     attributes: dict[str, Any] | None = None
 ) -> None:
     """
-    Create or update a sensor that stores a Google Drive file list.
+    Create or update a sensor that stores information in the state and attributes.
 
     Args:
         hass (HomeAssistant): The running Home Assistant instance.
         sensor_name (str): Friendly name chosen by the user (e.g., "Camera Backups").
         Will be slugified for the entity_id.
-        files (list[dict]): The `files` array returned by the Drive v3 API.
+        state (int | str): The state to set on the sensor.
+        attributes (dict[str, Any] | None): Additional attributes to set on the sensor.
     """
     entity_id = _create_entity_id(sensor_name)
+
+    # Ensure attributes is a dict
+    if not attributes:
+        attributes = {}
+
+    # Add a Home Assistant friendly_name if it's missing
+    if "friendly_name" not in attributes:
+        attributes["friendly_name"] = sensor_name
 
     # Set the state and attributes of the sensor.
     hass.states.async_set(entity_id, state, attributes)
