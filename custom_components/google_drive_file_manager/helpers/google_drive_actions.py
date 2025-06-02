@@ -416,9 +416,9 @@ def cleanup_older_files_by_pattern(credentials, pattern: str, days_ago: int, pre
 
     # Build query: name contains pattern from user, createdTime older than cutoff, not trashed
     query = [
-            pattern,
+            f"({pattern})",
             f"createdTime < '{cutoff}'",
-            f"trashed = false"
+            "trashed = false"
     ]
 
     # Remove empty parts from query and join with " and " to create a valid query string
