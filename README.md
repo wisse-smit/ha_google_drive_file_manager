@@ -97,7 +97,7 @@ Upload a local media file to Drive.
 
 
 | Parameter            | Type    | Required | Description                                                                                                                                               |
-| ---------------------- | --------- | ---------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ---------------------- | --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `local_file_path`    | string  | yes      | Path to the file on your Home Assistant host (e.g.,`/config/www/video.mp4`).                                                                              |
 | `mime_type`          | string  | no       | MIME type of the file (e.g.,`video/mp4`). Auto-detected if omitted.                                                                                       |
 | `remote_file_name`   | string  | no       | Filename to use in Drive. Defaults to the source file’s name.                                                                                            |

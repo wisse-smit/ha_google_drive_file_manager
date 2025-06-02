@@ -11,5 +11,5 @@
     "dependencies": [],
     "codeowners": ["@wisse_smit"],
     "config_flow": true
-  }
+}
   
