@@ -30,6 +30,13 @@ upload_media_file:
       example: camera/outdoor
       selector:
         text: {}
+    append_ymd_path:
+      name: Append year/month/day folders to file path
+      description: >
+        Append the current year/month/day to the remote folder path (if set, if no remote folder path, will be added to root).
+        Useful for organizing files by date.
+      selector:
+        boolean: {}
     save_to_sensor:
       name: Save to sensor
       description: >

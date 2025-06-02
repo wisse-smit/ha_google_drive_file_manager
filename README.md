@@ -49,7 +49,7 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
 5. **Scopes**: Click **Add or Remove Scopes**.
 
    * Filter by typing `drive`.
-   * `https://www.googleapis.com/auth/drive`: Grants full, permissive scope to access all of a user’s files, needed to read all files and use all services.
+   * `https://www.googleapis.com/auth/drive`: Grants full, permissive scope to access all of a user’s files (not only the ones created with this application), needed to read all files and use all services.
    * Click **Update** and then **Save and Continue**.
 6. **Test Users**: Add the Google account(s) you will use to authenticate (your own email).
 
@@ -97,14 +97,17 @@ Upload a local media file to Drive.
 
 
 | Parameter            | Type    | Required | Description                                                                                                                                               |
-| ---------------------- | --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ---------------------- | --------- | ---------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `local_file_path`    | string  | yes      | Path to the file on your Home Assistant host (e.g.,`/config/www/video.mp4`).                                                                              |
 | `mime_type`          | string  | no       | MIME type of the file (e.g.,`video/mp4`). Auto-detected if omitted.                                                                                       |
 | `remote_file_name`   | string  | no       | Filename to use in Drive. Defaults to the source file’s name.                                                                                            |
 | `remote_folder_path` | string  | no       | Drive folder path (e.g.,`camera/outdoor`). Split the path by `/`. If the path does not exist, the folders will be created. Leave the path blank for root. |
+| `append_ymd_path`    | boolean | no       | If`true`, add subfolders to the remote_folder_path representing year/month/day. This will organize the uploaded files in a structured way.                |
 | `save_to_sensor`     | boolean | no       | If`true`, write upload results to a sensor entity. State will be the filename, the attributes are the fields specified in the `fields` parameter.         |
 | `sensor_name`        | string  | no       | Name of the sensor entity (defaults to`Google Drive uploaded file`).                                                                                      |
 | `fields`             | string  | no       | Comma-separated Drive fields to return in the sensor (default:`id,name,webContentLink,webViewLink`).                                                      |
+
+
 
 **Example**:
 
@@ -113,6 +116,7 @@ service: google_drive_file_manager.upload_media_file
 data:
   local_file_path: "/config/www/images/photo.jpg"
   remote_folder_path: "my_album"
+  append_ymd_path: true
   save_to_sensor: true
   sensor_name: "Drive Photo"
 ```

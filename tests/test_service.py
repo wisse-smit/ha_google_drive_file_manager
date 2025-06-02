@@ -1,20 +1,36 @@
 # Import the necessary new service here
 from custom_components.google_drive_file_manager.helpers.google_drive_actions import (
-    get_list_files_by_pattern
+    upload_media_file
 )
 from tests.get_google_credentials import get_google_drive_credentials
+
+class HassDummy:
+    def __init__(self):
+        self.data = {}
+
+hass_dummy = HassDummy()
 
 if __name__ == "__main__":
     # Get Google Drive credentials
     google_drive_credentials = get_google_drive_credentials()
 
-    # Run the service here using the Google Drive credentials
-    found_files = get_list_files_by_pattern(
+    test_file_path_to = "tests"
+    test_file_file_name_local = "test_file"
+    full_file_path = f"{test_file_path_to}/{test_file_file_name_local}_0.txt"
+        
+    # Write a test file
+    with open(full_file_path, "wb") as f:
+        f.write(b"Test content")
+
+    # Upload a media file to Google Drive
+    response = upload_media_file(
         credentials=google_drive_credentials,
-        query=f"name contains 'test' and trashed = false",
-        fields="id, name, modifiedTime",
-        sort_by_recent=False,
-        maximum_files=10
+        hass=hass_dummy,
+        local_file_path=full_file_path,
+        fields="id, name, mimeType, size, modifiedTime",
+        remote_file_name=full_file_path.split("/")[-1].split(".")[0],
+        remote_folder_path="",
+        append_ymd_path=True
     )
 
-    print("Found files:", found_files)
+    print("Uploaded file:", response)

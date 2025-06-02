@@ -8,6 +8,7 @@ SCHEMAS = {
         vol.Optional("mime_type", default =""): cv.string,
         vol.Optional("remote_file_name", default =""): cv.string,
         vol.Optional("remote_folder_path", default=""): cv.string,
+        vol.Optional("append_ymd_path", default=False): cv.boolean,
         vol.Optional("save_to_sensor", default=False): cv.boolean,
         vol.Optional("sensor_name", default="Latest uploaded file"): cv.string,
         vol.Optional("fields", default="id,name,webViewLink,webContentLink"): cv.string,
