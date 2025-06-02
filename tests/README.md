@@ -35,3 +35,4 @@ To setup the testing, we first need to set up authentication to Google Drive. A 
    ```
 7. Run the get_google_drive_auth_details.py using the 'Get Google credentials' configuration in the debugger. Login using your Google Drive account. The access and refresh token will be printed. Update the values in the .env file.
 8. Now, when (in the virtual environment) you run 'pytest -q', the test_services.py will be run, and the output of the tests will be shown in the terminal.
+
