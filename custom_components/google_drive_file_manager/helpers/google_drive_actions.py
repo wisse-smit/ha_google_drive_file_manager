@@ -255,10 +255,6 @@ def upload_media_file(hass,
     Returns:
         dict: The response from the Google Drive API after the upload.
     """
-
-    # Verify whether the local path starts with a '/'
-    if not local_file_path.startswith("/"):
-        local_file_path = f"/{local_file_path}"
         
     # Verify the local file path exists - Exit if not
     verify_file_path_exists(local_file_path)
