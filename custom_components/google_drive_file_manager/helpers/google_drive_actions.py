@@ -238,7 +238,8 @@ def upload_media_file(hass,
                     fields: str,
                     mime_type: str = None, 
                     remote_file_name: str = None, 
-                    remote_folder_path: str = None) -> dict:
+                    remote_folder_path: str = None,
+                    append_ymd_path: bool = False) -> dict:
     """Uploads a large media file to Google Drive.
 
     Args:
@@ -248,13 +249,17 @@ def upload_media_file(hass,
         mime_type (str): The MIME type of the file.
         remote_filename (str): (optional) The desired name for the file in Google Drive.
         remote_folder_path (str): (optional) A filepath in Google Drive to upload the file to.
+        append_ymd_path (bool): If True, the file will be uploaded in a subfolder structure for year/month/day.
         fields: (str): The fields to include in the response from the Google Drive API.
-
 
     Returns:
         dict: The response from the Google Drive API after the upload.
     """
 
+    # Verify whether the local path starts with a '/'
+    if not local_file_path.startswith("/"):
+        local_file_path = f"/{local_file_path}"
+        
     # Verify the local file path exists - Exit if not
     verify_file_path_exists(local_file_path)
 
@@ -274,7 +279,23 @@ def upload_media_file(hass,
         file_metadata["name"] = remote_file_name
 
     # Extract the remote folder based on the folder path
-    if remote_folder_path:
+    # This is needed when a remote folder path is provided or when the append_ymd_path is True
+    if remote_folder_path or append_ymd_path:
+        
+        # If no remote folder path is provided, use the root folder
+        remote_folder_path = remote_folder_path or ""
+
+        # If append_ymd_path is True, append the year/month/day subfolder structure to the remote folder path
+        if append_ymd_path:
+            # Append year/month/day subfolder structure to the remote folder path
+            now = datetime.now()
+            remote_folder_path = os.path.join(
+                remote_folder_path, 
+                str(now.year), 
+                str(now.month).zfill(2), 
+                str(now.day).zfill(2)
+            )
+
         folder_id = extract_folder_id_from_path(hass, credentials, remote_folder_path)
 
         # Set the folder ID in the metadata so the file is uploaded to the correct folder
@@ -304,6 +325,7 @@ async def async_upload_media_file(hass,
                                   mime_type: str, 
                                   remote_file_name: str, 
                                   remote_folder_path: str,
+                                  append_ymd_path: bool,
                                   save_to_sensor: bool,
                                   sensor_name: str,
                                   fields: str
@@ -338,7 +360,6 @@ async def async_upload_media_file(hass,
             # Remove the file extension from the remote file name
             remote_file_name = remote_file_name_with_extension.split(".")[0]
 
-
         # Offload the blocking call to the executor
         response = await hass.async_add_executor_job(
             upload_media_file, 
@@ -348,7 +369,8 @@ async def async_upload_media_file(hass,
             fields, 
             mime_type, 
             remote_file_name, 
-            remote_folder_path
+            remote_folder_path,
+            append_ymd_path
             )
 
         _LOGGER.info("File uploaded successfully")
