@@ -29,7 +29,7 @@ if __name__ == "__main__":
         local_file_path=full_file_path,
         fields="id, name, mimeType, size, modifiedTime",
         remote_file_name=full_file_path.split("/")[-1].split(".")[0],
-        remote_folder_path="pytest",
+        remote_folder_path="",
         append_ymd_path=True
     )
 
