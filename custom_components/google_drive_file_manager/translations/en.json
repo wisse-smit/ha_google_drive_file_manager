@@ -3,8 +3,11 @@
       "step": {
         "user": {
           "title": "Google Drive Setup",
-          "description": "**Follow these steps to get your Google Drive OAuth credentials:**\n\n1. Go to https://console.cloud.google.com/ and create or select a project.\n2. In the left menu, choose **APIs & Services** → **Credentials**.\n3. Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.\n4. Under **Application type** pick **Web application**, give it a name, and in **Authorized redirect URIs** add:\n   `https://my.home-assistant.io/redirect/oauth`\n5. Click **Create**, then copy the **Client ID** and **Client secret** shown.\n\nEnter those values below to finish setup."
+          "descriptiun": "To connect Home Assistant to your Google Drive account, you must first provide a Google client ID and client secret. Once you’ve entered those credentials, you’ll be sent to Google’s consent screen where you can authorize Home Assistant to access your Drive.\n\nFor step‑by‑step instructions on creating your client ID and secret, please visit the [Integration documentation](https://github.com/wisse-smit/ha_google_drive_file_manager?tab=readme-ov-file#google-cloud-setting-up-the-oauth-consent-screen--credentials) and follow the steps."
+
         }
       }
     }
   }
+
+  
