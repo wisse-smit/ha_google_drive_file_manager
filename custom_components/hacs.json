@@ -4,6 +4,7 @@
     "content": "integration",
     "homeassistant": "2025.4.4",
     "render_readme": true,
+    "version": "0.2.3",
     "domains": ["google_drive_file_manager"],
     "zip_release": false,
     "issues": "https://github.com/wisse-smit/ha_google_drive_file_manager/issues",
