@@ -27,8 +27,9 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
 ### 1. Create a Google Cloud Project
 
 1. Open [Google Cloud Console](https://console.cloud.google.com/).
-2. Click the **Project** dropdown in the top bar and select **New Project**.
-3. Give it a descriptive name (e.g., `Home Assistant Drive Integration`) and click **Create**.
+2. Log in using the Google account that you use for Google Drive.
+3. Click the **Project** dropdown in the top bar and select **New Project**.
+4. Give it a descriptive name (e.g., `Home Assistant Drive Integration`) and click **Create**.
 
 ### 2. Enable the Google Drive API
 
@@ -56,6 +57,11 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
    * Enter the email and click **Add**, then **Save and Continue**.
 7. Review and click **Back to Dashboard**.
 
+   *Step to make sure your authentication remains active (testing mode requires reauthentication every 7 days)*
+8. On the main page of your consent screen (**Google Cloud console → APIs & Services → OAuth consent screen**) you’ll see a banner that reads "Publishing status: Testing" with a **Publish app** button.
+9. Click **Publish app → Confirm** and the banner changes to "Publishing status: In production"
+
+
 ### 4. Create OAuth 2.0 Credentials
 
 1. In **APIs & Services ➔ Credentials**, click **Create Credentials ➔ OAuth client ID**.
@@ -65,6 +71,7 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
 
    ```text
    https://my.home-assistant.io/redirect/oauth
+
    ```
 5. Click **Create**.
 6. Copy the **Client ID** and **Client secret**. You’ll need these in Home Assistant.
@@ -106,8 +113,6 @@ Upload a local media file to Drive.
 | `save_to_sensor`     | boolean | no       | If`true`, write upload results to a sensor entity. State will be the filename, the attributes are the fields specified in the `fields` parameter.         |
 | `sensor_name`        | string  | no       | Name of the sensor entity (defaults to`Google Drive uploaded file`).                                                                                      |
 | `fields`             | string  | no       | Comma-separated Drive fields to return in the sensor (default:`id,name,webContentLink,webViewLink`).                                                      |
-
-
 
 **Example**:
 
