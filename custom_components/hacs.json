@@ -6,5 +6,6 @@
     "render_readme": true,
     "domains": ["google_drive_file_manager"],
     "zip_release": false,
+    "issues": "https://github.com/wisse-smit/ha_google_drive_file_manager/issues",
     "logo": "hacs_logo.png"
   }

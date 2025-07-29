@@ -2,8 +2,6 @@
 
 This custom integration allows you to interact with Google Drive to upload media files, list files by pattern, and clean up older files matching a pattern directly from Home Assistant.
 
-More functionality will be added later.
-
 ---
 
 ## Installation (Custom Repository)
@@ -60,7 +58,6 @@ To use the integration, you need a Google OAuth Client ID and Secret. Follow the
    *Step to make sure your authentication remains active (testing mode requires reauthentication every 7 days)*
 8. On the main page of your consent screen (**Google Cloud console → APIs & Services → OAuth consent screen**) you’ll see a banner that reads "Publishing status: Testing" with a **Publish app** button.
 9. Click **Publish app → Confirm** and the banner changes to "Publishing status: In production"
-
 
 ### 4. Create OAuth 2.0 Credentials
 
@@ -192,5 +189,3 @@ The output will be stored in the sensor entity where the state is the number of 
 ```
 
 ---
-
-For detailed usage, examples, and troubleshooting, please refer to the [Integration Documentation](https://github.com/yourusername/your-repo-name/blob/main/README.md).
