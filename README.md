@@ -2,12 +2,6 @@
 
 This custom integration allows you to interact with Google Drive to upload media files, list files by pattern, and clean up older files matching a pattern directly from Home Assistant.
 
-**Disclaimer:**
-
-* This project is not affiliated with or endorsed by Google LLC.
-
-- "Google Drive" and related marks are trademarks of Google LLC.
-
 ## Installation (Custom Repository)
 
 1. In Home Assistant, go to **Settings ➔ Integrations**.
@@ -192,4 +186,8 @@ The output will be stored in the sensor entity where the state is the number of 
 }
 ```
 
----
+## Disclaimer:
+
+* This project is not affiliated with or endorsed by Google LLC.
+* "Google Drive" and related marks are trademarks of Google LLC.
+* This project is experimental software provided without warranty of any kind. Use it at your own discretion and risk.
