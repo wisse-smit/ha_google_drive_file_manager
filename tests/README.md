@@ -18,7 +18,7 @@ To setup the testing, we first need to set up authentication to Google Drive. A 
    ```
 4. Go to *Google Cloud console > APIs and Services > Clients > OAuth 2.0 Client IDs > Your Google Drive client* and add 'http://localhost:8000' in the authorized return uri.
 5. Create a .env file at root level
-6. In the .env file put the following template:
+6. In the .env file put the following template (make sure you fill in the required values):
 
    ```
    # Set these yourself from Google Cloud Console

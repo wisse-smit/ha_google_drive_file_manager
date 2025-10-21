@@ -5,7 +5,7 @@
         "name": "Get Google Credentials",
         "type": "debugpy",
         "request": "launch",
-        "program": "${workspaceFolder}/custom_components/tests/get_google_drive_auth_details.py",
+        "program": "${workspaceFolder}/tests/get_google_drive_auth_details.py",
         "console": "integratedTerminal",
         "cwd": "${workspaceFolder}",
         "python": "${workspaceFolder}/venv/bin/python"

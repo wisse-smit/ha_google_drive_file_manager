@@ -1,7 +1,6 @@
 {
     "name": "Google Drive file manager",
     "content_in_root": false,
-    "content": "integration",
     "homeassistant": "2025.4.4",
     "render_readme": true,
     "version": "0.2.3",
