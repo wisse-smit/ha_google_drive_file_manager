@@ -1,12 +1,8 @@
 # Google Drive Media Integration for Home Assistant
 
-This custom integration allows you to interact with Google Drive to upload media files, list files by pattern, and clean up older files matching a pattern directly from Home Assistant.
+This custom integration allows you to interact with Google Drive to upload (media) files, list files by pattern, and clean up older files matching a pattern directly from Home Assistant.
 
-**Disclaimer:**
-
-* This project is not affiliated with or endorsed by Google LLC.
-
-- "Google Drive" and related marks are trademarks of Google LLC.
+Create automated Google Cloud backups for security cameras, backup key files, or archive important Home Assistant data  — all seamlessly and securely in the cloud.
 
 ## Installation (Custom Repository)
 
@@ -193,3 +189,9 @@ The output will be stored in the sensor entity where the state is the number of 
 ```
 
 ---
+
+## Disclaimer:
+
+* This project is not affiliated with or endorsed by Google LLC.
+* "Google Drive" and related marks are trademarks of Google LLC.
+* This project is experimental software provided without warranty of any kind. Use it at your own discretion and risk.
