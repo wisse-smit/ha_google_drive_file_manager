@@ -1,17 +1,17 @@
 {
-    "domain": "google_drive_file_manager",
-    "name": "Google Drive file manager",
-    "version": "0.2.3",
-    "documentation": "https://github.com/wisse-smit/ha_google_drive_file_manager",
-    "issue_tracker": "https://github.com/wisse-smit/ha_google_drive_file_manager/issues",
-    "requirements": [
-      "google-auth==2.16.0",
-      "google-auth-oauthlib==0.5.3",
-      "google-api-python-client==2.86.0"
-    ],
-    "dependencies": ["http"],
-    "iot_class": "cloud_push",
-    "codeowners": ["@wisse_smit"],
-    "config_flow": true
+  "domain": "google_drive_file_manager",
+  "name": "Google Drive file manager",
+  "codeowners": ["@wisse_smit"],
+  "config_flow": true,
+  "dependencies": ["http"],
+  "documentation": "https://github.com/wisse-smit/ha_google_drive_file_manager",
+  "issue_tracker": "https://github.com/wisse-smit/ha_google_drive_file_manager/issues",
+  "iot_class": "cloud_push",
+  "requirements": [
+    "google-auth==2.16.0",
+    "google-auth-oauthlib==0.5.3",
+    "google-api-python-client==2.86.0"
+  ],
+  "version": "0.2.3"
 }
   
