@@ -9,7 +9,8 @@
       "google-auth-oauthlib==0.5.3",
       "google-api-python-client==2.86.0"
     ],
-    "dependencies": [],
+    "dependencies": ["http"],
+    "iot_class": "cloud_push",
     "codeowners": ["@wisse_smit"],
     "config_flow": true
 }

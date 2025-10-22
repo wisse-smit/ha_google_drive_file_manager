@@ -11,7 +11,6 @@ upload_media_file:
       example: /config/www/video123.mp4
       selector:
         text:
-          placeholder: /config/www/video123.mp4
     mime_type:
       name: MIME type
       description: Content type of the file.
